@@ -1,0 +1,48 @@
+# Deploys both canisters to mainnet on each push to `main`.
+# The `ICP_CI_PEM` secret holds the PEM key of an identity that controls both canisters.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Run one deploy at a time, and do not cancel a deploy that has started.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ICP_CLI_VERSION: 1.8.0
+      IC_WASM_VERSION: 0.11.1
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install icp-cli, ic-wasm and mops
+        run: npm install --global --no-audit --no-fund "@icp-sdk/icp-cli@$ICP_CLI_VERSION" "@icp-sdk/ic-wasm@$IC_WASM_VERSION" ic-mops
+
+      - name: Deploy
+        env:
+          ICP_CI_PEM: ${{ secrets.ICP_CI_PEM }}
+        run: |
+          set -e
+          (umask 077 && set -C && printf '%s' "$ICP_CI_PEM" > ci.pem)
+          trap 'rm -f ci.pem' EXIT
+          icp identity import ci --from-pem ci.pem --storage plaintext
+          rm ci.pem
+          icp deploy -e ic --identity ci
