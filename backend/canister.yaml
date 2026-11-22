@@ -3,4 +3,20 @@
 name: backend
 recipe:
   type: "@dfinity/motoko@v5.1.0"
+  configuration:
+    # Build provenance that the cloud engine console reads.
+    metadata:
+      - name: service:git:sha
+        value: $(git rev-parse HEAD)$(git diff --quiet HEAD 2>/dev/null || echo +dirty)
+      - name: service:git:origin
+        value: $(git remote get-url origin)
+      - name: service:git:updated_at
+        value: $(git log -1 --format=%cI)
+      - name: service:version
+        value: "1.0.0"
 
+# The cloud engine console groups canisters with the same `__META_PROJECT` into one app.
+settings:
+  environment_variables:
+    __META_PROJECT: "Mom's Recipes"
+    __META_NAME: "Backend"
