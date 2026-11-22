@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 20
     env:
       ICP_CLI_VERSION: 1.8.0
+      IC_WASM_VERSION: 0.11.1
     steps:
       - uses: actions/checkout@v5
         with:
@@ -31,8 +32,8 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install icp-cli and mops
-        run: npm install --global --no-audit --no-fund "@icp-sdk/icp-cli@$ICP_CLI_VERSION" ic-mops
+      - name: Install icp-cli, ic-wasm and mops
+        run: npm install --global --no-audit --no-fund "@icp-sdk/icp-cli@$ICP_CLI_VERSION" "@icp-sdk/ic-wasm@$IC_WASM_VERSION" ic-mops
 
       - name: Lint the frontend
         working-directory: frontend
