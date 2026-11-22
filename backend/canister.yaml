@@ -3,4 +3,24 @@
 name: backend
 recipe:
   type: "@dfinity/motoko@v5.1.0"
+  configuration:
+    # Build provenance, baked into the wasm as custom metadata sections.
+    # Values are shell-interpolated at build time; the Cloud Engine console
+    # is starting to show them.
+    metadata:
+      - name: service:version
+        value: "0.1.0"
+      - name: service:git:sha
+        value: $(git rev-parse HEAD)$(git diff --quiet HEAD 2>/dev/null || echo +dirty)
+      - name: service:git:origin
+        value: $(git remote get-url origin 2>/dev/null)
 
+# Display metadata read by the Cloud Engine (opencloud.org) console to group
+# this canister into the "Mom's Recipes" app and label it. __META_PROJECT must
+# match the frontend exactly. The main-canister-only variables
+# (__META_MAIN_CANISTER, __META_BASE_URL, __META_ICON_PATH) belong on the
+# frontend, not here.
+settings:
+  environment_variables:
+    __META_PROJECT: "Mom's Recipes"
+    __META_NAME: "Backend"
