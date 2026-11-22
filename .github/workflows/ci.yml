@@ -1,0 +1,44 @@
+# The required status check. The ruleset on `main` requires the check `ci`,
+# so keep the job name `ci`. Agent PRs merge on their own when it passes.
+name: ci
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ICP_CLI_VERSION: 1.8.0
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install icp-cli and mops
+        run: npm install --global --no-audit --no-fund "@icp-sdk/icp-cli@$ICP_CLI_VERSION" ic-mops
+
+      - name: Lint the frontend
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run lint
+
+      - name: Build the canisters
+        run: icp build
