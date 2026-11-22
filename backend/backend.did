@@ -1,0 +1,15 @@
+type RecipeSummary = 
+ record {
+   id: text;
+   title: text;
+ };
+type Recipe = 
+ record {
+   id: text;
+   markdown: text;
+   title: text;
+ };
+service : {
+  getRecipe: (id: text) -> (opt Recipe) query;
+  listRecipes: () -> (vec RecipeSummary) query;
+}
