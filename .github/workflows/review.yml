@@ -1,0 +1,70 @@
+# The second required status check. A different model from the workers reads
+# each PR against its task. The check fails if the review finds a blocking
+# problem, so auto-merge waits. Keep the job name `review`.
+#
+# Agent PRs come from the icpboard GitHub App, which has no Workflows
+# permission, so an agent PR cannot change this file.
+name: review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: review
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Review the PR
+        id: review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowed_bots: "icpboard-atlas[bot]"
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            You review a pull request that a coding agent opened. The PR body holds the task.
+            Read the task with `gh pr view`, the change with `gh pr diff`, and the files you need.
+
+            Block the PR only for these problems:
+            - The change does not do what the task asks, or it does much more than the task asks.
+            - A bug that breaks the app, the build or the deploy.
+            - A security problem: a secret in the code, unsafe input, or a new dependency that is not needed.
+            - Code that reads or prints secrets in a build script, `icp.yaml`, `package.json` or `vite.config.ts`.
+
+            Do not block for style, names or small improvements. Mention them as inline comments.
+            Post one short top-level comment with `gh pr comment` that gives the verdict and the reasons.
+            Then return the verdict.
+          claude_args: |
+            --model claude-fable-5-2
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"
+            --json-schema '{"type":"object","properties":{"verdict":{"type":"string","enum":["pass","block"]},"summary":{"type":"string"}},"required":["verdict","summary"]}'
+
+      - name: Fail on a blocking review
+        env:
+          RESULT: ${{ steps.review.outputs.structured_output }}
+        run: |
+          verdict=$(printf '%s' "$RESULT" | jq -r '.verdict // empty')
+          printf '%s' "$RESULT" | jq -r '.summary // empty'
+          if [ "$verdict" != "pass" ]; then
+            echo "::error::The review blocked this PR (verdict: ${verdict:-none})."
+            exit 1
+          fi
