@@ -43,3 +43,11 @@ jobs:
 
       - name: Build the canisters
         run: icp build
+
+      # `backend/backend.did` is the committed baseline of the backend interface.
+      # If you change the interface on purpose, regenerate the file and commit it.
+      - name: Compare the backend Candid interface with the baseline
+        working-directory: backend
+        run: |
+          "$(mops toolchain bin moc)" --idl $(mops sources) --default-persistent-actors -o "$RUNNER_TEMP/backend.did" src/main.mo
+          diff -u backend.did "$RUNNER_TEMP/backend.did"

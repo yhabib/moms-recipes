@@ -1,4 +1,4 @@
-# Deploys both canisters to mainnet on each push to `main`.
+# Deploys both canisters to mainnet on each push to `main`: first the backend, then the frontend.
 # The `ICP_CI_PEM` secret holds the PEM key of an identity that controls both canisters.
 name: Deploy
 
@@ -38,7 +38,7 @@ jobs:
       - name: Install icp-cli, ic-wasm and mops
         run: npm install --global --no-audit --no-fund "@icp-sdk/icp-cli@$ICP_CLI_VERSION" "@icp-sdk/ic-wasm@$IC_WASM_VERSION" ic-mops
 
-      - name: Deploy
+      - name: Import the CI identity
         env:
           ICP_CI_PEM: ${{ secrets.ICP_CI_PEM }}
         run: |
@@ -47,4 +47,11 @@ jobs:
           trap 'rm -f ci.pem' EXIT
           icp identity import ci --from-pem ci.pem --storage plaintext
           rm ci.pem
-          icp deploy -e ic --identity ci
+
+      # Stop, snapshot, upgrade, then start and check. If a step fails, restore the snapshot.
+      - name: Upgrade the backend
+        run: scripts/upgrade-backend.sh ic ci
+
+      # Runs only if the backend upgrade succeeds.
+      - name: Deploy the frontend
+        run: icp deploy frontend -e ic --identity ci
