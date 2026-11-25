@@ -6,6 +6,7 @@ module {
     {
       id = "lentil-soup";
       title = "Mom's Lentil Soup";
+      servings = 4;
       markdown = "# Mom's Lentil Soup
 
 A cozy, one-pot soup for cold evenings.
@@ -34,6 +35,7 @@ A cozy, one-pot soup for cold evenings.
     {
       id = "apple-cake";
       title = "Sunday Apple Cake";
+      servings = 8;
       markdown = "# Sunday Apple Cake
 
 ## Ingredients
@@ -58,6 +60,7 @@ A cozy, one-pot soup for cold evenings.
     {
       id = "tomato-rice";
       title = "Tomato Rice";
+      servings = 4;
       markdown = "# Tomato Rice
 
 ## Ingredients

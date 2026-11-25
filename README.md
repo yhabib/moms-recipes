@@ -11,7 +11,7 @@ See [`backend/backend.did`](./backend/backend.did):
 
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title }
-getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown }
+getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings }
 ```
 
 Code layout follows the multi-file Motoko convention: `types.mo` (types), `lib/` (domain logic and data), `mixins/` (public API), `main.mo` (composition only).

@@ -7,6 +7,7 @@ type Recipe =
  record {
    id: text;
    markdown: text;
+   servings: nat;
    title: text;
  };
 service : {
