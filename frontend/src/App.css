@@ -16,6 +16,11 @@
   margin: 0 0 16px;
 }
 
+.app-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .recipe-list {
   list-style: none;
   margin: 0;
@@ -25,15 +30,11 @@
 }
 
 .recipe-link {
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
+  display: block;
   border-radius: 8px;
   padding: 8px 12px;
-  font: inherit;
   color: inherit;
-  cursor: pointer;
+  text-decoration: none;
 }
 
 .recipe-link:hover {
