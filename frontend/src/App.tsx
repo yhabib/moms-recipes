@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
+import ServingScaler from "./ServingScaler";
+import { scaleRecipeMarkdown } from "./scaleIngredients";
 import "./App.css";
 
 function App() {
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [servings, setServings] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -26,13 +29,17 @@ function App() {
     backend
       .getRecipe(selectedId)
       .then((r) => {
-        if (!cancelled) setRecipe(r ?? null);
+        if (cancelled) return;
+        setRecipe(r ?? null);
+        setServings(r ? Number(r.servings) : 0);
       })
       .catch((e: unknown) => setError(String(e)));
     return () => {
       cancelled = true;
     };
   }, [selectedId]);
+
+  const baseServings = recipe ? Number(recipe.servings) : 0;
 
   return (
     <div className="layout">
@@ -59,7 +66,12 @@ function App() {
         {error && <p className="error">Could not reach the backend: {error}</p>}
         {recipe ? (
           <article className="recipe">
-            <Markdown>{recipe.markdown}</Markdown>
+            {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} />}
+            <Markdown>
+              {baseServings > 0
+                ? scaleRecipeMarkdown(recipe.markdown, servings / baseServings)
+                : recipe.markdown}
+            </Markdown>
           </article>
         ) : (
           !error && <p className="muted">Select a recipe.</p>
