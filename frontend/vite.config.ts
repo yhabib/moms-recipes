@@ -4,7 +4,7 @@ import { icpBindgen } from "@icp-sdk/bindgen/plugins/vite";
 import { execSync } from "child_process";
 
 
-export default defineConfig(({ command }) => {
+export default defineConfig(({ command, mode }) => {
   const plugins = [
     react(),
     icpBindgen({
@@ -13,8 +13,9 @@ export default defineConfig(({ command }) => {
     }),
   ];
 
-  // If we're only building this is enough
-  if (command !== "serve") {
+  // If we're only building or running tests (vitest uses mode "test"),
+  // this is enough
+  if (command !== "serve" || mode === "test") {
     return { plugins };
   }
 
