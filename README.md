@@ -2,7 +2,7 @@
 
 An Internet Computer app to keep track of mom's recipes.
 
-- [`backend/`](./backend/): Motoko canister. Recipes are stored as Markdown. For now it serves a few hard-coded placeholder recipes from [`src/lib/PlaceholderRecipes.mo`](./backend/src/lib/PlaceholderRecipes.mo).
+- [`backend/`](./backend/): Motoko canister. Recipes are stored as Markdown. It serves a few hard-coded placeholder recipes from [`src/lib/PlaceholderRecipes.mo`](./backend/src/lib/PlaceholderRecipes.mo), followed by recipes added through `addRecipe`, which are kept in persistent actor state and survive upgrades. Existing recipes can't be edited.
 - [`frontend/`](./frontend/): React + Vite app served from an asset canister. It lists the recipes and renders the selected one with `react-markdown`.
 
 ## Backend API
@@ -12,7 +12,11 @@ See [`backend/backend.did`](./backend/backend.did):
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title }
 getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings }
+addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
+              // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text }
 ```
+
+`addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
 
 Code layout follows the multi-file Motoko convention: `types.mo` (types), `lib/` (domain logic and data), `mixins/` (public API), `main.mo` (composition only).
 
@@ -36,6 +40,7 @@ Call the backend directly:
 ```bash
 icp canister call backend listRecipes '()'
 icp canister call backend getRecipe '("apple-cake")'
+icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" } })'
 ```
 
 ### Frontend dev server
