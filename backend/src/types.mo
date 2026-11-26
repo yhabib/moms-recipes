@@ -11,4 +11,14 @@ module {
     id : Text;
     title : Text;
   };
+
+  /// Input for `addRecipe`. The backend validates it, builds the Markdown
+  /// body and assigns the id.
+  public type NewRecipe = {
+    name : Text;
+    description : Text;
+    servings : Nat;
+    ingredients : [Text];
+    steps : [Text];
+  };
 };
