@@ -22,6 +22,8 @@ snapshot_id=""
 
 recover() {
   local code=$?
+  # A second signal must not stop the restore halfway.
+  trap '' INT TERM
   if [[ $code -eq 0 || $stopped == false ]]; then
     exit "$code"
   fi
@@ -49,8 +51,9 @@ echo "Building $CANISTER"
 icp build "$CANISTER" "${icp_args[@]:0:2}"
 
 echo "Stopping $CANISTER"
-icp canister stop "$CANISTER" "${icp_args[@]}"
+# The IC can finish the stop even if the call fails here.
 stopped=true
+icp canister stop "$CANISTER" "${icp_args[@]}"
 
 echo "Taking a snapshot of $CANISTER"
 previous=$(icp canister snapshot list "$CANISTER" --json "${icp_args[@]}" |
@@ -75,6 +78,16 @@ if [[ $status != "Running" ]]; then
   echo "::error::$CANISTER is $status after the upgrade, not Running." >&2
   exit 1
 fi
-icp canister call "$CANISTER" listRecipes '()' --query "${icp_args[@]}" >/dev/null
+# A failed check restores the snapshot and loses the writes since the start, so retry a network error first.
+for attempt in 1 2 3; do
+  if icp canister call "$CANISTER" listRecipes '()' --query "${icp_args[@]}" >/dev/null; then
+    break
+  fi
+  if [[ $attempt -eq 3 ]]; then
+    echo "::error::listRecipes failed 3 times after the upgrade." >&2
+    exit 1
+  fi
+  sleep 5
+done
 
 echo "$CANISTER is upgraded and running"
