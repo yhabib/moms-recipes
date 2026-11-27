@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 /** Every page the app can show. Add a new variant here to add a route. */
 export type Route =
   | { name: "home" }
+  | { name: "newRecipe" }
   | { name: "recipe"; id: string }
   | { name: "notFound"; path: string };
 
@@ -14,6 +15,9 @@ export type Route =
 export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#/, "") || "/";
   if (path === "/") return { name: "home" };
+
+  // Checked before `/recipes/:id` so that "new" is never read as a recipe id.
+  if (/^\/recipes\/new\/?$/.test(path)) return { name: "newRecipe" };
 
   const recipe = /^\/recipes\/([^/]+)\/?$/.exec(path);
   if (recipe) {
@@ -32,6 +36,8 @@ export function hrefFor(route: Route): string {
   switch (route.name) {
     case "home":
       return "#/";
+    case "newRecipe":
+      return "#/recipes/new";
     case "recipe":
       return `#/recipes/${encodeURIComponent(route.id)}`;
     case "notFound":
