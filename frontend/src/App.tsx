@@ -77,8 +77,9 @@ function App() {
     shown = recipes;
     if (recipes === null && !error) status = <p className="muted">Loading…</p>;
     if (recipes?.length === 0) status = <p className="muted">No recipes yet.</p>;
-  } else if (search?.status === "done") {
-    // While the next query is pending, keep the previous results on screen.
+  } else if (search?.status === "done" && search.query === searchText) {
+    // Only a reply for the current query counts; an older reply falls
+    // through to "Searching…" below until the new one arrives.
     shown = search.results;
     if (search.results.length === 0) status = <p className="muted">No recipes match.</p>;
   } else if (search?.status === "error" && search.query === searchText) {
