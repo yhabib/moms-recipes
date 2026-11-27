@@ -6,6 +6,8 @@ module {
     markdown : Text;
     /// Number of servings the ingredient amounts in `markdown` are written for.
     servings : Nat;
+    /// Short lowercase labels such as "soup" or "vegetarian"; may be empty.
+    tags : [Text];
   };
 
   /// Lightweight entry for listing recipes without shipping every body.
@@ -22,5 +24,8 @@ module {
     servings : Nat;
     ingredients : [Text];
     steps : [Text];
+    /// Optional so callers built before tags existed (which omit the field)
+    /// stay compatible; `null` means no tags.
+    tags : ?[Text];
   };
 };

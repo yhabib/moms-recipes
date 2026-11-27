@@ -1,5 +1,6 @@
 import Array "mo:core/Array";
 import Char "mo:core/Char";
+import List "mo:core/List";
 import Nat "mo:core/Nat";
 import Nat32 "mo:core/Nat32";
 import Result "mo:core/Result";
@@ -12,6 +13,8 @@ module {
   public let maxDescriptionLength = 500;
   public let maxLineLength = 300;
   public let maxLines = 100;
+  public let maxTags = 10;
+  public let maxTagLength = 30;
 
   /// A `NewRecipe` after trimming and validation.
   public type ValidRecipe = {
@@ -20,6 +23,7 @@ module {
     servings : Nat;
     ingredients : [Text];
     steps : [Text];
+    tags : [Text];
   };
 
   func trim(t : Text) : Text = Text.trim(t, #predicate(Char.isWhitespace));
@@ -35,6 +39,23 @@ module {
       };
     };
     #ok(kept);
+  };
+
+  /// Trims and lowercases every tag, drops blank ones and duplicates (keeping
+  /// the first occurrence and its order) and checks the count and tag length.
+  func cleanTags(tags : [Text]) : Result.Result<[Text], Text> {
+    let kept = List.empty<Text>();
+    for (raw in tags.values()) {
+      let t = Text.toLower(trim(raw));
+      if (t != "" and not List.contains<Text>(kept, Text.equal, t)) List.add(kept, t);
+    };
+    if (List.size(kept) > maxTags) return #err("Tags can have at most " # Nat.toText(maxTags) # " entries");
+    for (t in List.values(kept)) {
+      if (t.size() > maxTagLength) {
+        return #err("Tags can be at most " # Nat.toText(maxTagLength) # " characters");
+      };
+    };
+    #ok(List.toArray(kept));
   };
 
   /// Trims the input and checks it. Returns a short readable message on failure.
@@ -55,7 +76,12 @@ module {
       case (#ok(l)) l;
       case (#err(e)) return #err(e);
     };
-    #ok({ name; description; servings = input.servings; ingredients; steps });
+    let rawTags = switch (input.tags) { case (?t) t; case null [] };
+    let tags = switch (cleanTags(rawTags)) {
+      case (#ok(l)) l;
+      case (#err(e)) return #err(e);
+    };
+    #ok({ name; description; servings = input.servings; ingredients; steps; tags });
   };
 
   /// URL-safe slug: lowercase ASCII letters and digits; every other run of
@@ -113,6 +139,7 @@ module {
         title = r.name;
         markdown = toMarkdown(r);
         servings = r.servings;
+        tags = r.tags;
       });
     };
   };

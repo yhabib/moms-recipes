@@ -13,10 +13,16 @@ actor {
   // to it any more.
   let addedRecipes = List.empty<LegacyRecipes.RecipeV1>();
 
-  // Recipes added through `addRecipe`, in insertion order. On the upgrade that
-  // introduces it, it starts as a copy of `addedRecipes` with `servings` read
-  // from the Markdown.
+  // Recipes added between task #15 and task #24, stored without `tags`. On the
+  // upgrade that introduced it, it started as a copy of `addedRecipes` with
+  // `servings` read from the Markdown. Kept with its old type so upgrades from
+  // those versions stay compatible; nothing writes to it any more.
   let addedRecipesWithServings = LegacyRecipes.withServings(addedRecipes);
 
-  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithServings);
+  // Recipes added through `addRecipe`, in insertion order. On the upgrade that
+  // introduces it, it starts as a copy of `addedRecipesWithServings` with no
+  // tags.
+  let addedRecipesWithTags = LegacyRecipes.withTags(addedRecipesWithServings);
+
+  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithTags);
 };
