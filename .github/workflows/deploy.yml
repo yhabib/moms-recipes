@@ -21,6 +21,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # GitHub sends a `deployment_status` with this URL. The board reads deploys of `production` only.
+    environment:
+      name: production
+      url: https://xr3gt-2yaaa-aaack-aabsq-cai.icp.net
     env:
       ICP_CLI_VERSION: 1.8.0
       IC_WASM_VERSION: 0.11.1
