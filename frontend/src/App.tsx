@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
+import { AddRecipeForm } from "./components/AddRecipeForm";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import "./App.css";
 
@@ -35,6 +36,13 @@ function App() {
         <h1 className="app-title">
           <a href={hrefFor({ name: "home" })}>Mom's Recipes</a>
         </h1>
+        <a
+          className={route.name === "newRecipe" ? "add-recipe-link active" : "add-recipe-link"}
+          href={hrefFor({ name: "newRecipe" })}
+          aria-current={route.name === "newRecipe" ? "page" : undefined}
+        >
+          + Add a recipe
+        </a>
         {recipes === null && !error && <p className="muted">Loading…</p>}
         {recipes?.length === 0 && <p className="muted">No recipes yet.</p>}
         <nav>
@@ -65,6 +73,8 @@ function Page({ route }: { route: Route }) {
   switch (route.name) {
     case "home":
       return <p className="muted">Select a recipe.</p>;
+    case "newRecipe":
+      return <AddRecipeForm />;
     case "recipe":
       return <RecipePage id={route.id} />;
     case "notFound":
