@@ -55,6 +55,7 @@ export function AddRecipeForm() {
         servings: BigInt(servingsText),
         ingredients: ingredientLines,
         steps: stepLines,
+        tags: [],
       });
       if (result.__kind__ === "ok") {
         refreshRecipes();

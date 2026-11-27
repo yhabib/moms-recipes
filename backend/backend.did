@@ -13,6 +13,7 @@ type Recipe =
    id: text;
    markdown: text;
    servings: nat;
+   tags: vec text;
    title: text;
  };
 type NewRecipe = 
@@ -22,6 +23,7 @@ type NewRecipe =
    name: text;
    servings: nat;
    steps: vec text;
+   tags: opt vec text;
  };
 service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
