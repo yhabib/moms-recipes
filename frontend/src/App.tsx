@@ -5,7 +5,7 @@ import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
-import { scaleRecipeMarkdown } from "./scaleIngredients";
+import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
 import "./App.css";
 
 function App() {
@@ -120,9 +120,11 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
   const [servings, setServings] = useState(baseServings);
   return (
     <article className="recipe">
-      {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} />}
+      {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
       <Markdown>
-        {baseServings > 0 ? scaleRecipeMarkdown(recipe.markdown, servings / baseServings) : recipe.markdown}
+        {baseServings > 0
+          ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
+          : recipe.markdown}
       </Markdown>
     </article>
   );

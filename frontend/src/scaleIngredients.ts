@@ -160,3 +160,10 @@ export function scaleRecipeMarkdown(markdown: string, factor: number): string {
     })
     .join("\n");
 }
+
+const SERVINGS_LINE = /^\*\*Servings:\*\* \d+[ \t]*$/m;
+
+/** Returns `markdown` with its first `**Servings:** N` line set to `servings`. */
+export function withServings(markdown: string, servings: number): string {
+  return markdown.replace(SERVINGS_LINE, `**Servings:** ${servings}`);
+}

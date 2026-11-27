@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAmount, scaleRecipeMarkdown } from "./scaleIngredients";
+import { formatAmount, scaleRecipeMarkdown, withServings } from "./scaleIngredients";
 
 describe("formatAmount", () => {
   it.each([
@@ -154,5 +154,17 @@ Tip: use 3 bay leaves.
     expect(scaleRecipeMarkdown("## Ingredients\r\n- 1 egg\r\n", 3)).toBe(
       "## Ingredients\r\n- 3 egg\r\n",
     );
+  });
+});
+
+describe("withServings", () => {
+  it("sets the servings line to the scaled count", () => {
+    expect(withServings("# Soup\n\n**Servings:** 4\n\n## Ingredients\n", 6)).toBe(
+      "# Soup\n\n**Servings:** 6\n\n## Ingredients\n",
+    );
+  });
+
+  it("keeps a recipe with no servings line", () => {
+    expect(withServings("# Soup\n- 1 egg\n", 6)).toBe("# Soup\n- 1 egg\n");
   });
 });
