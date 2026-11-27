@@ -11,7 +11,7 @@ See [`backend/backend.did`](./backend/backend.did):
 
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title }
-getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown }
+getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings }
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
               // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text }
 ```

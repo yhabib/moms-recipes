@@ -4,6 +4,8 @@ module {
     id : Text;
     title : Text;
     markdown : Text;
+    /// Number of servings the ingredient amounts in `markdown` are written for.
+    servings : Nat;
   };
 
   /// Lightweight entry for listing recipes without shipping every body.

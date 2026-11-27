@@ -112,6 +112,7 @@ module {
         id = uniqueId(slugify(r.name), isTaken);
         title = r.name;
         markdown = toMarkdown(r);
+        servings = r.servings;
       });
     };
   };
