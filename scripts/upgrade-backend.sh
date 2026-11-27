@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Upgrades the backend canister in 4 steps: stop, snapshot, upgrade, then start and check.
 # If a step after the snapshot fails, the script restores the snapshot and starts the canister.
-# The canister keeps one snapshot: each run replaces the most recent one.
+# Each run replaces the most recent snapshot.
+# If the job is cancelled or killed, the backend can stay stopped. Then restore it by hand:
+#   icp canister snapshot list backend -e ic
+#   icp canister snapshot restore backend <snapshot-id> -e ic && icp canister start backend -e ic
 #
 # Usage: scripts/upgrade-backend.sh <environment> [identity]
 set -euo pipefail
@@ -49,6 +52,14 @@ trap 'exit 143' TERM
 
 echo "Building $CANISTER"
 icp build "$CANISTER" "${icp_args[@]:0:2}"
+
+# A backend that is not running can be the rejected upgrade of a failed restore.
+# A new snapshot would then replace the only good one.
+before=$(icp canister status "$CANISTER" --json "${icp_args[@]}" | jq -r '.status')
+if [[ $before != "Running" ]]; then
+  echo "::error::$CANISTER is $before, not Running. Restore it by hand first (see the top of $0)." >&2
+  exit 1
+fi
 
 echo "Stopping $CANISTER"
 # The IC can finish the stop even if the call fails here.
