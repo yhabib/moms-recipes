@@ -16,6 +16,11 @@
   margin: 0 0 16px;
 }
 
+.app-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .recipe-list {
   list-style: none;
   margin: 0;
@@ -25,15 +30,11 @@
 }
 
 .recipe-link {
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
+  display: block;
   border-radius: 8px;
   padding: 8px 12px;
-  font: inherit;
   color: inherit;
-  cursor: pointer;
+  text-decoration: none;
 }
 
 .recipe-link:hover {
@@ -132,4 +133,107 @@
   .content {
     padding: 24px 16px;
   }
+}
+
+.add-recipe-link {
+  display: block;
+  margin-bottom: 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+}
+
+.add-recipe-link:hover,
+.add-recipe-link.active {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.recipe-form h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  margin-top: 0;
+}
+
+.recipe-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.recipe-form label {
+  font-weight: 600;
+}
+
+.recipe-form input,
+.recipe-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+}
+
+.recipe-form textarea {
+  resize: vertical;
+}
+
+.recipe-form .servings-input {
+  max-width: 120px;
+}
+
+.recipe-form input:focus,
+.recipe-form textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
+}
+
+.recipe-form [aria-invalid="true"] {
+  border-color: #c0392b;
+}
+
+.field-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.field-error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 0.875rem;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.form-actions a {
+  color: var(--muted);
+}
+
+.button-primary {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button-primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
 }

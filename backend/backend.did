@@ -1,3 +1,8 @@
+type Result = 
+ variant {
+   err: text;
+   ok: text;
+ };
 type RecipeSummary = 
  record {
    id: text;
@@ -7,9 +12,20 @@ type Recipe =
  record {
    id: text;
    markdown: text;
+   servings: nat;
    title: text;
  };
+type NewRecipe = 
+ record {
+   description: text;
+   ingredients: vec text;
+   name: text;
+   servings: nat;
+   steps: vec text;
+ };
 service : {
+  /// Adds a recipe and returns its id, or a readable error if the input is invalid.
+  addRecipe: (input: NewRecipe) -> (Result);
   getRecipe: (id: text) -> (opt Recipe) query;
   listRecipes: () -> (vec RecipeSummary) query;
 }
