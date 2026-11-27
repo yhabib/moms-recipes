@@ -2,6 +2,7 @@ import Array "mo:core/Array";
 import List "mo:core/List";
 import Result "mo:core/Result";
 import RecipesLib "../lib/Recipes";
+import Search "../lib/Search";
 import Types "../types";
 
 /// Public recipe API. main.mo injects the hard-coded `placeholders` and the
@@ -14,11 +15,24 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
     };
   };
 
+  func summary(r : Types.Recipe) : Types.RecipeSummary = { id = r.id; title = r.title };
+
   public query func listRecipes() : async [Types.RecipeSummary] {
-    let summary = func(r : Types.Recipe) : Types.RecipeSummary = { id = r.id; title = r.title };
     Array.concat(
       Array.map<Types.Recipe, Types.RecipeSummary>(placeholders, summary),
       List.toArray(List.map<Types.Recipe, Types.RecipeSummary>(added, summary)),
+    );
+  };
+
+  /// Recipes whose title or ingredient lines contain `searchText` (trimmed,
+  /// case-insensitive), in `listRecipes` order. Empty or over-long queries return [].
+  public query func searchRecipes(searchText : Text) : async [Types.RecipeSummary] {
+    let q = Search.trim(searchText);
+    if (q == "" or q.size() > Search.maxQueryLength) return [];
+    let isMatch = func(r : Types.Recipe) : Bool = Search.matches(r, q);
+    Array.concat(
+      Array.map<Types.Recipe, Types.RecipeSummary>(Array.filter<Types.Recipe>(placeholders, isMatch), summary),
+      List.toArray(List.map<Types.Recipe, Types.RecipeSummary>(List.filter<Types.Recipe>(added, isMatch), summary)),
     );
   };
 

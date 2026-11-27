@@ -28,4 +28,7 @@ service : {
   addRecipe: (input: NewRecipe) -> (Result);
   getRecipe: (id: text) -> (opt Recipe) query;
   listRecipes: () -> (vec RecipeSummary) query;
+  /// Recipes whose title or ingredient lines contain `searchText` (trimmed,
+  /// case-insensitive), in `listRecipes` order. Empty or over-long queries return [].
+  searchRecipes: (searchText: text) -> (vec RecipeSummary) query;
 }
