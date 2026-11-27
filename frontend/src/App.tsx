@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { RecipeSearch } from "./components/RecipeSearch";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
 import "./App.css";
+
+/** How long to wait after the last keystroke before searching. */
+const SEARCH_DEBOUNCE_MS = 250;
+
+/** The latest search reply, with the query it answers. */
+type SearchState =
+  | { query: string; status: "done"; results: RecipeSummary[] }
+  | { query: string; status: "error"; error: string };
 
 function App() {
   const route = useRoute();
@@ -30,7 +39,56 @@ function App() {
     return onRefreshRecipes(refreshRecipes);
   }, [refreshRecipes]);
 
+  const [query, setQuery] = useState("");
+  const [search, setSearch] = useState<SearchState | null>(null);
+  const searchText = query.trim();
+
+  const changeQuery = (text: string) => {
+    setQuery(text);
+    // Start the next search from scratch instead of showing old results.
+    if (text.trim() === "") setSearch(null);
+  };
+
+  useEffect(() => {
+    if (searchText === "") return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      backend
+        .searchRecipes(searchText)
+        .then((results) => {
+          if (!cancelled) setSearch({ query: searchText, status: "done", results });
+        })
+        .catch((e: unknown) => {
+          if (!cancelled) setSearch({ query: searchText, status: "error", error: String(e) });
+        });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // `recipes` is a dependency so that the results follow a reloaded list.
+  }, [searchText, recipes]);
+
   const activeId = route.name === "recipe" ? route.id : null;
+
+  let shown: RecipeSummary[] | null;
+  let status: ReactNode = null;
+  if (searchText === "") {
+    shown = recipes;
+    if (recipes === null && !error) status = <p className="muted">Loading…</p>;
+    if (recipes?.length === 0) status = <p className="muted">No recipes yet.</p>;
+  } else if (search?.status === "done" && search.query === searchText) {
+    // Only a reply for the current query counts; an older reply falls
+    // through to "Searching…" below until the new one arrives.
+    shown = search.results;
+    if (search.results.length === 0) status = <p className="muted">No recipes match.</p>;
+  } else if (search?.status === "error" && search.query === searchText) {
+    shown = null;
+    status = <p className="error">Could not search the recipes: {search.error}</p>;
+  } else {
+    shown = null;
+    status = <p className="muted">Searching…</p>;
+  }
 
   return (
     <div className="layout">
@@ -45,11 +103,11 @@ function App() {
         >
           + Add a recipe
         </a>
-        {recipes === null && !error && <p className="muted">Loading…</p>}
-        {recipes?.length === 0 && <p className="muted">No recipes yet.</p>}
-        <nav>
+        <RecipeSearch value={query} onChange={changeQuery} />
+        <div role="status">{status}</div>
+        <nav aria-label={searchText === "" ? "Recipes" : "Search results"}>
           <ul className="recipe-list">
-            {recipes?.map((r) => (
+            {shown?.map((r) => (
               <li key={r.id}>
                 <a
                   className={r.id === activeId ? "recipe-link active" : "recipe-link"}
