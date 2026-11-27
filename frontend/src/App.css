@@ -21,6 +21,32 @@
   text-decoration: none;
 }
 
+.recipe-search {
+  margin-bottom: 12px;
+}
+
+.recipe-search-input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+}
+
+.recipe-search-input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.recipe-search-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
+}
+
 .recipe-list {
   list-style: none;
   margin: 0;
@@ -132,6 +158,12 @@
 
   .content {
     padding: 24px 16px;
+  }
+
+  .recipe-search-input {
+    /* At least 16px so that iOS Safari does not zoom in on focus. */
+    font-size: max(1rem, 16px);
+    padding: 10px 12px;
   }
 }
 
