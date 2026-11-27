@@ -161,9 +161,34 @@ export function scaleRecipeMarkdown(markdown: string, factor: number): string {
     .join("\n");
 }
 
-const SERVINGS_LINE = /^\*\*Servings:\*\* \d+[ \t]*$/m;
+const SERVINGS_LINE = /^(\*\*Servings:\*\* )\d+([ \t]*)$/;
 
-/** Returns `markdown` with its first `**Servings:** N` line set to `servings`. */
+/**
+ * Returns `markdown` with its servings line set to `servings`: the last
+ * `**Servings:** N` line before the first "Ingredients" heading, outside a
+ * fence. That is the line the backend writes, after the free-text description.
+ */
 export function withServings(markdown: string, servings: number): string {
-  return markdown.replace(SERVINGS_LINE, `**Servings:** ${servings}`);
+  const lines = markdown.split("\n");
+  let fence: string | null = null;
+  let target = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const fenceMatch = FENCE.exec(line);
+    if (fence !== null) {
+      if (fenceMatch && fenceMatch[1][0] === fence[0] && fenceMatch[1].length >= fence.length) fence = null;
+      continue;
+    }
+    if (fenceMatch) {
+      fence = fenceMatch[1];
+      continue;
+    }
+    const heading = HEADING.exec(line);
+    if (heading && isIngredientsHeading(heading[1])) break;
+    if (SERVINGS_LINE.test(line.replace(/\r$/, ""))) target = i;
+  }
+  if (target < 0) return markdown;
+  const cr = lines[target].endsWith("\r") ? "\r" : "";
+  lines[target] = lines[target].replace(/\r$/, "").replace(SERVINGS_LINE, `$1${servings}$2`) + cr;
+  return lines.join("\n");
 }
