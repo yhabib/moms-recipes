@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { backend } from "../backend";
 import { hrefFor, navigate, refreshRecipes } from "../router";
 
-type Field = "name" | "servings" | "ingredients" | "steps";
+type Field = "name" | "servings" | "tags" | "ingredients" | "steps";
 type FieldErrors = Partial<Record<Field, string>>;
 
 /** Splits a textarea into trimmed, non-empty lines. */
@@ -13,11 +13,29 @@ function toLines(text: string): string[] {
     .filter((line) => line !== "");
 }
 
+/** Same limits as the backend (backend/src/lib/Recipes.mo). */
+const MAX_TAGS = 10;
+const MAX_TAG_LENGTH = 30;
+
+/**
+ * Splits comma-separated tags, trims and lowercases each one, and drops
+ * blank ones and duplicates (keeping the first occurrence and its order).
+ */
+function toTags(text: string): string[] {
+  const tags: string[] = [];
+  for (const part of text.split(",")) {
+    const tag = part.trim().toLowerCase();
+    if (tag !== "" && !tags.includes(tag)) tags.push(tag);
+  }
+  return tags;
+}
+
 /** Shows the "Add a recipe" form and saves the recipe in the backend. */
 export function AddRecipeForm() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [servings, setServings] = useState("4");
+  const [tags, setTags] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [steps, setSteps] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -34,11 +52,17 @@ export function AddRecipeForm() {
     const ingredientLines = toLines(ingredients);
     const stepLines = toLines(steps);
     const servingsText = servings.trim();
+    const tagList = toTags(tags);
 
     const found: FieldErrors = {};
     if (name.trim() === "") found.name = "Enter a name.";
     if (!/^\d+$/.test(servingsText) || Number(servingsText) < 1) {
       found.servings = "Servings must be a whole number of at least 1.";
+    }
+    if (tagList.length > MAX_TAGS) {
+      found.tags = `Use at most ${MAX_TAGS} tags.`;
+    } else if (tagList.some((tag) => [...tag].length > MAX_TAG_LENGTH)) {
+      found.tags = `Each tag can be at most ${MAX_TAG_LENGTH} characters.`;
     }
     if (ingredientLines.length === 0) found.ingredients = "Add at least one ingredient.";
     if (stepLines.length === 0) found.steps = "Add at least one step.";
@@ -55,7 +79,7 @@ export function AddRecipeForm() {
         servings: BigInt(servingsText),
         ingredients: ingredientLines,
         steps: stepLines,
-        tags: [],
+        tags: tagList,
       });
       if (result.__kind__ === "ok") {
         refreshRecipes();
@@ -125,6 +149,32 @@ export function AddRecipeForm() {
         {errors.servings && (
           <p id="recipe-servings-error" className="field-error">
             {errors.servings}
+          </p>
+        )}
+      </div>
+
+      <div className="field">
+        <label htmlFor="recipe-tags">Tags</label>
+        <p className="field-hint" id="recipe-tags-hint">
+          Optional. Separate tags with commas, e.g. soup, vegetarian.
+        </p>
+        <input
+          id="recipe-tags"
+          type="text"
+          autoComplete="off"
+          value={tags}
+          onChange={(e) => {
+            setTags(e.target.value);
+            clearError("tags");
+          }}
+          aria-invalid={errors.tags ? true : undefined}
+          aria-describedby={
+            errors.tags ? "recipe-tags-hint recipe-tags-error" : "recipe-tags-hint"
+          }
+        />
+        {errors.tags && (
+          <p id="recipe-tags-error" className="field-error">
+            {errors.tags}
           </p>
         )}
       </div>
