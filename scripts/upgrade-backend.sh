@@ -28,8 +28,12 @@ recover() {
   set +e
   if [[ -n $snapshot_id ]]; then
     echo "::error::The backend upgrade failed. Restoring snapshot $snapshot_id." >&2
-    icp canister stop "$CANISTER" "${icp_args[@]}"
-    icp canister snapshot restore "$CANISTER" "$snapshot_id" "${icp_args[@]}"
+    # If the restore fails, a start would run the rejected upgrade.
+    if ! icp canister stop "$CANISTER" "${icp_args[@]}" ||
+      ! icp canister snapshot restore "$CANISTER" "$snapshot_id" "${icp_args[@]}"; then
+      echo "::error::The restore of snapshot $snapshot_id failed. The backend stays stopped. Restore it by hand." >&2
+      exit "$code"
+    fi
   else
     echo "::error::The backend snapshot failed. Starting the canister again without an upgrade." >&2
   fi
@@ -37,6 +41,9 @@ recover() {
   exit "$code"
 }
 trap recover EXIT
+# A cancelled job must not exit with 0, or recover skips the restore.
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 echo "Building $CANISTER"
 icp build "$CANISTER" "${icp_args[@]:0:2}"
