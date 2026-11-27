@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAmount, scaleRecipeMarkdown } from "./scaleIngredients";
+import { formatAmount, scaleRecipeMarkdown, withServings } from "./scaleIngredients";
 
 describe("formatAmount", () => {
   it.each([
@@ -154,5 +154,26 @@ Tip: use 3 bay leaves.
     expect(scaleRecipeMarkdown("## Ingredients\r\n- 1 egg\r\n", 3)).toBe(
       "## Ingredients\r\n- 3 egg\r\n",
     );
+  });
+});
+
+describe("withServings", () => {
+  it("sets the servings line to the scaled count", () => {
+    expect(withServings("# Soup\n\n**Servings:** 4\n\n## Ingredients\n", 6)).toBe(
+      "# Soup\n\n**Servings:** 6\n\n## Ingredients\n",
+    );
+  });
+
+  it("skips a servings line in the description or in a fence", () => {
+    const md = "# Soup\n\n**Servings:** 2\n\n```\n**Servings:** 3\n```\n\n**Servings:** 4\n\n## Ingredients\n- 1 egg\n";
+    expect(withServings(md, 6)).toBe(md.replace("**Servings:** 4", "**Servings:** 6"));
+  });
+
+  it("keeps the trailing spaces of the servings line", () => {
+    expect(withServings("**Servings:** 4  \nFor a big pot\n", 8)).toBe("**Servings:** 8  \nFor a big pot\n");
+  });
+
+  it("keeps a recipe with no servings line", () => {
+    expect(withServings("# Soup\n- 1 egg\n", 6)).toBe("# Soup\n- 1 egg\n");
   });
 });

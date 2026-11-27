@@ -4,6 +4,8 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
+import ServingScaler from "./ServingScaler";
+import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
 import "./App.css";
 
 function App() {
@@ -110,9 +112,20 @@ function RecipePage({ id }: { id: string }) {
     return <p className="error">Could not load the recipe: {state.error}</p>;
   }
   if (state.recipe === null) return <NotFound message="Recipe not found." />;
+  return <RecipeView key={id} recipe={state.recipe} />;
+}
+
+function RecipeView({ recipe }: { recipe: Recipe }) {
+  const baseServings = Number(recipe.servings);
+  const [servings, setServings] = useState(baseServings);
   return (
     <article className="recipe">
-      <Markdown>{state.recipe.markdown}</Markdown>
+      {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
+      <Markdown>
+        {baseServings > 0
+          ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
+          : recipe.markdown}
+      </Markdown>
     </article>
   );
 }
