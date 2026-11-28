@@ -62,8 +62,11 @@ mixin (
   };
 
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
-  public func addRecipe(input : Types.NewRecipe) : async Result.Result<Text, Text> {
-    switch (RecipesLib.create(input, func id = findRecipe(id) != null)) {
+  /// The caller must be signed in (not the anonymous principal) and is stored as
+  /// the recipe's `author`.
+  public shared ({ caller }) func addRecipe(input : Types.NewRecipe) : async Result.Result<Text, Text> {
+    if (Principal.isAnonymous(caller)) return #err("Sign in to add a recipe");
+    switch (RecipesLib.create(input, caller, func id = findRecipe(id) != null)) {
       case (#err(e)) #err(e);
       case (#ok(recipe)) {
         List.add(added, recipe);

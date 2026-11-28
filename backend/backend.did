@@ -19,6 +19,7 @@ type RecipeSummary =
  };
 type Recipe = 
  record {
+   author: opt principal;
    cookMinutes: opt nat;
    difficulty: opt Difficulty;
    id: text;
@@ -57,6 +58,8 @@ service : {
   /// recipe ids get `#err`; adding a recipe that is already a favourite is `#ok`.
   addFavourite: (recipeId: text) -> (Result);
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
+  /// The caller must be signed in (not the anonymous principal) and is stored as
+  /// the recipe's `author`.
   addRecipe: (input: NewRecipe) -> (Result_1);
   getRecipe: (id: text) -> (opt Recipe) query;
   /// The photo of the recipe with this id, or null if it has none or does not exist.

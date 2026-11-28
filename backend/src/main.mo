@@ -32,15 +32,22 @@ actor {
   // compatible; nothing writes to it any more.
   let addedRecipesWithTags = LegacyRecipes.withTags(addedRecipesWithServings);
 
-  // Recipes added through `addRecipe`, in insertion order. On the upgrade that
-  // introduces it, it starts as a copy of `addedRecipesWithTags` with no prep
-  // time, cook time or difficulty.
+  // Recipes added between task #47 and task #56, stored without `author`. On
+  // the upgrade that introduced it, it started as a copy of
+  // `addedRecipesWithTags` with no prep time, cook time or difficulty. Kept
+  // with its old type so upgrades from those versions stay compatible; nothing
+  // writes to it any more.
   let addedRecipesWithDetails = LegacyRecipes.withDetails(addedRecipesWithTags);
+
+  // Recipes added through `addRecipe`, in insertion order. On the upgrade that
+  // introduces it, it starts as a copy of `addedRecipesWithDetails` with no
+  // author.
+  let addedRecipesWithAuthor = LegacyRecipes.withAuthor(addedRecipesWithDetails);
 
   // Photos of recipes added through `addRecipe`, keyed by recipe id. Kept
   // apart from the recipes so `Types.Recipe` (the element type of
-  // `addedRecipesWithDetails`) stays unchanged across upgrades. Recipes without
-  // a photo have no entry.
+  // `addedRecipesWithAuthor`) does not change when photos are added. Recipes
+  // without a photo have no entry.
   let recipePhotos = Map.empty<Text, Types.Photo>();
 
   // Favourite recipe ids per signed-in principal, written by `addFavourite`
@@ -51,5 +58,5 @@ actor {
   // The placeholder and seed recipes are hard-coded in the code, not stored in
   // actor state; they are served first, followed by the added recipes. They
   // have no photos.
-  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithDetails, recipePhotos, favouritesByUser);
+  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithAuthor, recipePhotos, favouritesByUser);
 };
