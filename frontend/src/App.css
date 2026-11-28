@@ -402,6 +402,32 @@
   line-height: 1.5;
 }
 
+.recipe-action-button {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recipe-action-button:hover {
+  filter: brightness(1.1);
+}
+
+.recipe-action-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.recipe-actions-status {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
 /* "Added by you" above the tags, on the signed-in user's own recipes. */
 .added-by-you {
   margin: 0 0 var(--space-2);
