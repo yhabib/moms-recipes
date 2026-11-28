@@ -19,10 +19,17 @@ actor {
   // those versions stay compatible; nothing writes to it any more.
   let addedRecipesWithServings = LegacyRecipes.withServings(addedRecipes);
 
-  // Recipes added through `addRecipe`, in insertion order. On the upgrade that
-  // introduces it, it starts as a copy of `addedRecipesWithServings` with no
-  // tags.
+  // Recipes added between task #24 and task #47, stored without
+  // `prepMinutes`, `cookMinutes` and `difficulty`. On the upgrade that
+  // introduced it, it started as a copy of `addedRecipesWithServings` with no
+  // tags. Kept with its old type so upgrades from those versions stay
+  // compatible; nothing writes to it any more.
   let addedRecipesWithTags = LegacyRecipes.withTags(addedRecipesWithServings);
 
-  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithTags);
+  // Recipes added through `addRecipe`, in insertion order. On the upgrade that
+  // introduces it, it starts as a copy of `addedRecipesWithTags` with no prep
+  // time, cook time or difficulty.
+  let addedRecipesWithDetails = LegacyRecipes.withDetails(addedRecipesWithTags);
+
+  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithDetails);
 };
