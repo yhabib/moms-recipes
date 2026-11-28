@@ -4,6 +4,7 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { AppNav } from "./components/AppNav";
+import { RecipeCard } from "./components/RecipeCard";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
@@ -120,18 +121,26 @@ function App() {
           </ul>
         </nav>
       </AppNav>
-      <main className="content">
+      <main className={route.name === "home" ? "content content-wide" : "content"}>
         {error && <p className="error">Could not reach the backend: {error}</p>}
-        <Page route={route} />
+        <Page route={route} recipes={recipes} failed={error !== null} />
       </main>
     </div>
   );
 }
 
-function Page({ route }: { route: Route }) {
+function Page({
+  route,
+  recipes,
+  failed,
+}: {
+  route: Route;
+  recipes: RecipeSummary[] | null;
+  failed: boolean;
+}) {
   switch (route.name) {
     case "home":
-      return <p className="muted">Select a recipe.</p>;
+      return <HomePage recipes={recipes} failed={failed} />;
     case "newRecipe":
       return <AddRecipeForm />;
     case "recipe":
@@ -139,6 +148,42 @@ function Page({ route }: { route: Route }) {
     case "notFound":
       return <NotFound message="Page not found." />;
   }
+}
+
+/**
+ * Every recipe as a card, in `listRecipes` order. Always the full list:
+ * the sidebar search does not filter it.
+ */
+function HomePage({ recipes, failed }: { recipes: RecipeSummary[] | null; failed: boolean }) {
+  let body: ReactNode;
+  if (recipes === null) {
+    // When loading failed, the error above the page already says so.
+    body = failed ? null : <p className="muted">Loading…</p>;
+  } else if (recipes.length === 0) {
+    body = (
+      <p className="muted">
+        No recipes yet. <a href={hrefFor({ name: "newRecipe" })}>Add the first one</a>
+      </p>
+    );
+  } else {
+    body = (
+      <ul className="recipe-grid">
+        {recipes.map((r) => (
+          <li key={r.id}>
+            <RecipeCard recipe={r} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <section className="home" aria-labelledby="home-heading">
+      <h2 id="home-heading" className="home-heading">
+        All recipes
+      </h2>
+      {body}
+    </section>
+  );
 }
 
 type RecipeState =
