@@ -11,6 +11,7 @@ type Result =
 type RecipeSummary = 
  record {
    description: text;
+   hasPhoto: bool;
    id: text;
    servings: nat;
    tags: vec text;
@@ -27,6 +28,11 @@ type Recipe =
    tags: vec text;
    title: text;
  };
+type Photo = 
+ record {
+   contentType: text;
+   data: blob;
+ };
 type NewRecipe = 
  record {
    cookMinutes: opt nat;
@@ -34,6 +40,7 @@ type NewRecipe =
    difficulty: opt Difficulty;
    ingredients: vec text;
    name: text;
+   photo: opt Photo;
    prepMinutes: opt nat;
    servings: nat;
    steps: vec text;
@@ -52,6 +59,8 @@ service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
   addRecipe: (input: NewRecipe) -> (Result_1);
   getRecipe: (id: text) -> (opt Recipe) query;
+  /// The photo of the recipe with this id, or null if it has none or does not exist.
+  getRecipePhoto: (id: text) -> (opt Photo) query;
   /// The caller's favourite recipes, in `listRecipes` order. Anonymous callers
   /// and callers without favourites get []; ids of missing recipes are skipped.
   listFavourites: () -> (vec RecipeSummary) query;

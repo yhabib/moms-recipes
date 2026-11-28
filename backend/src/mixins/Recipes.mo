@@ -1,7 +1,9 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Map "mo:core/Map";
 import Principal "mo:core/Principal";
 import Result "mo:core/Result";
+import Text "mo:core/Text";
 import Favourites "../lib/Favourites";
 import RecipesLib "../lib/Recipes";
 import Search "../lib/Search";
@@ -10,8 +12,14 @@ import Types "../types";
 
 /// Public recipe API. main.mo injects the hard-coded `placeholders` and the
 /// persistent `added` list, which keeps user-added recipes in insertion order,
-/// and the persistent `favourites` store, keyed by the caller's principal.
-mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>, favourites : Favourites.Store) {
+/// the persistent `photos` map from recipe id to that recipe's photo, and the
+/// persistent `favourites` store, keyed by the caller's principal.
+mixin (
+  placeholders : [Types.Recipe],
+  added : List.List<Types.Recipe>,
+  photos : Map.Map<Text, Types.Photo>,
+  favourites : Favourites.Store,
+) {
   let signInError = "Sign in to save favourites.";
 
   func findRecipe(id : Text) : ?Types.Recipe {
@@ -27,6 +35,7 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>, favourite
     description = Summary.description(r.markdown);
     servings = r.servings;
     tags = r.tags;
+    hasPhoto = Map.containsKey(photos, Text.compare, r.id);
   };
 
   public query func listRecipes() : async [Types.RecipeSummary] {
@@ -58,6 +67,10 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>, favourite
       case (#err(e)) #err(e);
       case (#ok(recipe)) {
         List.add(added, recipe);
+        switch (input.photo) {
+          case (?photo) Map.add(photos, Text.compare, recipe.id, photo);
+          case null {};
+        };
         #ok(recipe.id);
       };
     };
@@ -89,5 +102,10 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>, favourite
       Array.map<Types.Recipe, Types.RecipeSummary>(Array.filter<Types.Recipe>(placeholders, isFavourite), summary),
       List.toArray(List.map<Types.Recipe, Types.RecipeSummary>(List.filter<Types.Recipe>(added, isFavourite), summary)),
     );
+  };
+
+  /// The photo of the recipe with this id, or null if it has none or does not exist.
+  public query func getRecipePhoto(id : Text) : async ?Types.Photo {
+    Map.get(photos, Text.compare, id);
   };
 };
