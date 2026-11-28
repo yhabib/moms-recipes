@@ -6,9 +6,11 @@ import { AddRecipeForm } from "./components/AddRecipeForm";
 import { RecipeCard } from "./components/RecipeCard";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
+import { TagFilter } from "./components/TagFilter";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
+import { distinctTags, filterByTag } from "./tagFilter";
 import "./App.css";
 
 /** How long to wait after the last keystroke before searching. */
@@ -23,6 +25,7 @@ function App() {
   const route = useRoute();
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const refreshRecipes = useCallback(
     () =>
@@ -31,6 +34,10 @@ function App() {
         .then((list) => {
           setRecipes(list);
           setError(null);
+          // Drop a selected tag that no recipe has any more.
+          setSelectedTag((tag) =>
+            tag !== null && !list.some((r) => r.tags.includes(tag)) ? null : tag
+          );
         })
         .catch((e: unknown) => setError(String(e))),
     []
@@ -72,6 +79,7 @@ function App() {
   }, [searchText, recipes]);
 
   const activeId = route.name === "recipe" ? route.id : null;
+  const tags = recipes === null ? [] : distinctTags(recipes);
 
   let shown: RecipeSummary[] | null;
   let status: ReactNode = null;
@@ -91,6 +99,11 @@ function App() {
     shown = null;
     status = <p className="muted">Searching…</p>;
   }
+  // The tag narrows both the full list and the search results.
+  if (shown !== null && shown.length > 0 && selectedTag !== null) {
+    shown = filterByTag(shown, selectedTag);
+    if (shown.length === 0) status = <p className="muted">No recipes match.</p>;
+  }
 
   return (
     <div className="layout">
@@ -106,6 +119,7 @@ function App() {
           + Add a recipe
         </a>
         <RecipeSearch value={query} onChange={changeQuery} />
+        <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
         <div role="status">{status}</div>
         <nav aria-label={searchText === "" ? "Recipes" : "Search results"}>
           <ul className="recipe-list">
