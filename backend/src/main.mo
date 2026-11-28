@@ -21,17 +21,24 @@ actor {
   // those versions stay compatible; nothing writes to it any more.
   let addedRecipesWithServings = LegacyRecipes.withServings(addedRecipes);
 
-  // Recipes added between task #24 and task #56, stored without `author`. On
-  // the upgrade that introduced it, it started as a copy of
-  // `addedRecipesWithServings` with no tags. Kept with its old type so
-  // upgrades from those versions stay compatible; nothing writes to it any
-  // more.
+  // Recipes added between task #24 and task #47, stored without
+  // `prepMinutes`, `cookMinutes` and `difficulty`. On the upgrade that
+  // introduced it, it started as a copy of `addedRecipesWithServings` with no
+  // tags. Kept with its old type so upgrades from those versions stay
+  // compatible; nothing writes to it any more.
   let addedRecipesWithTags = LegacyRecipes.withTags(addedRecipesWithServings);
 
+  // Recipes added between task #47 and task #56, stored without `author`. On
+  // the upgrade that introduced it, it started as a copy of
+  // `addedRecipesWithTags` with no prep time, cook time or difficulty. Kept
+  // with its old type so upgrades from those versions stay compatible; nothing
+  // writes to it any more.
+  let addedRecipesWithDetails = LegacyRecipes.withDetails(addedRecipesWithTags);
+
   // Recipes added through `addRecipe`, in insertion order. On the upgrade that
-  // introduces it, it starts as a copy of `addedRecipesWithTags` with no
+  // introduces it, it starts as a copy of `addedRecipesWithDetails` with no
   // author.
-  let addedRecipesWithAuthor = LegacyRecipes.withAuthor(addedRecipesWithTags);
+  let addedRecipesWithAuthor = LegacyRecipes.withAuthor(addedRecipesWithDetails);
 
   // The placeholder and seed recipes are hard-coded in the code, not stored in
   // actor state; they are served first, followed by the added recipes.

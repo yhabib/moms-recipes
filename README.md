@@ -11,15 +11,19 @@ See [`backend/backend.did`](./backend/backend.did):
 
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title }
-getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; author : opt principal }
+getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty; author : opt principal }
 searchRecipes : (searchText : text) -> (vec RecipeSummary) query;
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
-              // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text }
+              // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text;
+              //             prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty }
+              // Difficulty = variant { easy; medium; hard }
 ```
 
 `addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
 
 `tags` are short labels such as `"soup"` or `"vegetarian"` and are optional: the field can be left out or be an empty list (it is `opt` so that callers built before tags existed keep working). Each tag is trimmed and lowercased; blank tags and duplicates are dropped, keeping the first occurrence and its order (`opt vec { " Soup "; "soup"; "Quick" }` is stored as `vec { "soup"; "quick" }`). After cleaning there can be at most 10 tags of up to 30 characters each, otherwise `addRecipe` returns `#err`. Tags are returned by `getRecipe` but are not part of the Markdown. Recipes added before tags existed have `tags = vec {}`.
+
+`prepMinutes`, `cookMinutes` and `difficulty` are optional too, for the same reason: each can be left out or be `null`, which means "not given". `prepMinutes` and `cookMinutes` are whole minutes from 0 to 1440 (24 hours); 0 is allowed, for example for a salad with no cooking, and a larger value makes `addRecipe` return `#err`. `difficulty` is one of `easy`, `medium` or `hard`. All three are returned by `getRecipe` but are not part of the Markdown. Recipes added before these fields existed have `null` for all three.
 
 `addRecipe` requires a signed-in caller: for the anonymous principal it returns `#err("Sign in to add a recipe")` before checking the input, and stores nothing. Otherwise the caller's principal is stored as the recipe's `author` and returned by `getRecipe`. Placeholder and seed recipes, and recipes added before authors were stored, have `author = null`.
 
@@ -48,7 +52,7 @@ Call the backend directly:
 icp canister call backend listRecipes '()'
 icp canister call backend getRecipe '("apple-cake")'
 icp canister call backend searchRecipes '("lentil")'
-icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" } })'
+icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" }; prepMinutes = opt 5; cookMinutes = opt 10; difficulty = opt variant { easy } })'
 ```
 
 `addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`.
