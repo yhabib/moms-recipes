@@ -2,7 +2,7 @@
 
 An Internet Computer app to keep track of mom's recipes.
 
-- [`backend/`](./backend/): Motoko canister. Recipes are stored as Markdown. It serves a few hard-coded placeholder recipes from [`src/lib/PlaceholderRecipes.mo`](./backend/src/lib/PlaceholderRecipes.mo), followed by recipes added through `addRecipe`, which are kept in persistent actor state and survive upgrades. Existing recipes can't be edited.
+- [`backend/`](./backend/): Motoko canister. Recipes are stored as Markdown. It serves a few hard-coded placeholder recipes from [`src/lib/PlaceholderRecipes.mo`](./backend/src/lib/PlaceholderRecipes.mo) and 12 hard-coded seed recipes from [`src/lib/SeedRecipes.mo`](./backend/src/lib/SeedRecipes.mo), followed by recipes added through `addRecipe`, which are kept in persistent actor state and survive upgrades. Existing recipes can't be edited.
 - [`frontend/`](./frontend/): React + Vite app served from an asset canister. It lists the recipes and renders the selected one with `react-markdown`.
 
 ## Backend API

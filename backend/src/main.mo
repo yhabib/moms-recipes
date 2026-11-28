@@ -1,7 +1,9 @@
+import Array "mo:core/Array";
 import List "mo:core/List";
 import Map "mo:core/Map";
 import LegacyRecipes "lib/LegacyRecipes";
 import PlaceholderRecipes "lib/PlaceholderRecipes";
+import SeedRecipes "lib/SeedRecipes";
 import RecipesMixin "mixins/Recipes";
 import Types "types";
 
@@ -32,5 +34,8 @@ actor {
   // entry.
   let recipePhotos = Map.empty<Text, Types.Photo>();
 
-  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithTags, recipePhotos);
+  // The placeholder and seed recipes are hard-coded in the code, not stored in
+  // actor state; they are served first, followed by the added recipes. They
+  // have no photos.
+  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithTags, recipePhotos);
 };
