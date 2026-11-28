@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useAuth } from "../auth";
 import { backend } from "../backend";
 import { Difficulty, type NewRecipe, type Photo } from "../backend/api/backend";
 import type { RecipeFormValues } from "../recipeFormValues";
@@ -524,15 +525,54 @@ export function RecipeForm({
   );
 }
 
-/** Shows the "Add a recipe" form and saves the recipe in the backend. */
-export function AddRecipeForm() {
+/**
+ * The "Add a recipe" form for a signed-in user. It is unmounted on sign-out,
+ * which drops its field state; a save still running then does not navigate.
+ */
+function SignedInAddRecipeForm() {
+  const active = useRef(true);
+  useEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+    };
+  }, []);
+
   async function addRecipe(input: NewRecipe): Promise<string | null> {
+    if (!active.current) return "Sign in to add a recipe";
     const result = await backend.addRecipe(input);
     if (result.__kind__ !== "ok") return result.err;
     refreshRecipes();
-    navigate(hrefFor({ name: "recipe", id: result.ok }));
+    if (active.current) navigate(hrefFor({ name: "recipe", id: result.ok }));
     return null;
   }
 
   return <RecipeForm heading="Add a recipe" submitLabel="Save recipe" withPhoto onSave={addRecipe} />;
+}
+
+/**
+ * Shows the "Add a recipe" form to a signed-in user and saves the recipe in
+ * the backend; asks everyone else to sign in first.
+ */
+export function AddRecipeForm() {
+  const { status, principal, signIn } = useAuth();
+
+  if (status === "loading") return <p className="muted">Loading…</p>;
+
+  if (status === "signedOut") {
+    return (
+      <div className="recipe-form">
+        <h2>Add a recipe</h2>
+        <p>Sign in with Internet Identity to add a recipe.</p>
+        <div className="form-actions">
+          <button type="button" className="button-primary" onClick={() => void signIn()}>
+            Sign in
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Keyed by principal, so switching accounts starts from an empty form.
+  return <SignedInAddRecipeForm key={principal?.toText()} />;
 }
