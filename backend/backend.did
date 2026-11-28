@@ -61,6 +61,15 @@ service : {
   /// The caller must be signed in (not the anonymous principal) and is stored as
   /// the recipe's `author`.
   addRecipe: (input: NewRecipe) -> (Result_1);
+  /// True if the caller may edit the recipe: the caller is not anonymous and
+  /// is the stored `author` of this user-added recipe. Placeholder and seed
+  /// recipes, recipes added before authors were stored, and unknown ids
+  /// return false.
+  canEditRecipe: (id: text) -> (bool) query;
+  /// Deletes the recipe with this id and its photo. Only the recipe's author
+  /// may call it (see `canEditRecipe`); the other recipes keep their order.
+  /// Returns `#err` with a short message otherwise.
+  deleteRecipe: (id: text) -> (Result);
   getRecipe: (id: text) -> (opt Recipe) query;
   /// The photo of the recipe with this id, or null if it has none or does not exist.
   getRecipePhoto: (id: text) -> (opt Photo) query;
@@ -74,4 +83,10 @@ service : {
   /// Recipes whose title or ingredient lines contain `searchText` (trimmed,
   /// case-insensitive), in `listRecipes` order. Empty or over-long queries return [].
   searchRecipes: (searchText: text) -> (vec RecipeSummary) query;
+  /// Replaces the recipe with this id by one built from `input`, validated like
+  /// `addRecipe`. Only the recipe's author may call it (see `canEditRecipe`).
+  /// The id, author and position in the list stay the same, even when the name
+  /// changes, so links keep working. A new `photo` replaces the stored one;
+  /// `photo = null` keeps it. Returns `#err` with a short message otherwise.
+  updateRecipe: (id: text, input: NewRecipe) -> (Result);
 }

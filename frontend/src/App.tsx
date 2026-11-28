@@ -8,6 +8,8 @@ import { AddToShoppingListButton } from "./components/AddToShoppingListButton";
 import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
+import { EditRecipePage } from "./components/EditRecipePage";
+import { RecipeActions } from "./components/RecipeActions";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipePhoto } from "./components/RecipePhoto";
@@ -88,7 +90,8 @@ function App() {
     // `recipes` is a dependency so that the results follow a reloaded list.
   }, [searchText, recipes]);
 
-  const activeId = route.name === "recipe" ? route.id : null;
+  // The recipe being edited stays highlighted in the sidebar too.
+  const activeId = route.name === "recipe" || route.name === "editRecipe" ? route.id : null;
   const tags = recipes === null ? [] : distinctTags(recipes);
 
   // Picks from the full list, not the search results, and never the open recipe.
@@ -194,6 +197,8 @@ function Page({
       return <AddRecipeForm />;
     case "recipe":
       return <RecipePage id={route.id} />;
+    case "editRecipe":
+      return <EditRecipePage id={route.id} />;
     case "shoppingList":
       return <ShoppingListPage />;
     case "notFound":
@@ -276,6 +281,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
 
   return (
     <article className="recipe">
+      <RecipeActions id={recipe.id} />
       <header className="recipe-header">
         <h1 className="recipe-title">{recipe.title}</h1>
         <AddedByYou author={recipe.author ?? null} />

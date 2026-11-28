@@ -2,7 +2,7 @@
 
 An Internet Computer app to keep track of mom's recipes.
 
-- [`backend/`](./backend/): Motoko canister. Recipes are stored as Markdown. It serves a few hard-coded placeholder recipes from [`src/lib/PlaceholderRecipes.mo`](./backend/src/lib/PlaceholderRecipes.mo) and 12 hard-coded seed recipes from [`src/lib/SeedRecipes.mo`](./backend/src/lib/SeedRecipes.mo), followed by recipes added through `addRecipe`, which are kept in persistent actor state and survive upgrades. Existing recipes can't be edited.
+- [`backend/`](./backend/): Motoko canister. Recipes are stored as Markdown. It serves a few hard-coded placeholder recipes from [`src/lib/PlaceholderRecipes.mo`](./backend/src/lib/PlaceholderRecipes.mo) and 12 hard-coded seed recipes from [`src/lib/SeedRecipes.mo`](./backend/src/lib/SeedRecipes.mo), followed by recipes added through `addRecipe`, which are kept in persistent actor state and survive upgrades. The author of a recipe can update or delete it with `updateRecipe` and `deleteRecipe`.
 - [`frontend/`](./frontend/): React + Vite app served from an asset canister. It lists the recipes and renders the selected one with `react-markdown`.
 
 ## Backend API
@@ -21,6 +21,9 @@ addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
 addFavourite    : (recipeId : text) -> (variant { ok; err : text });
 removeFavourite : (recipeId : text) -> (variant { ok; err : text });
 listFavourites  : () -> (vec RecipeSummary) query;
+canEditRecipe : (id : text) -> (bool) query;
+updateRecipe : (id : text, NewRecipe) -> (variant { ok; err : text });
+deleteRecipe : (id : text) -> (variant { ok; err : text });
 ```
 
 `addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
@@ -32,6 +35,14 @@ listFavourites  : () -> (vec RecipeSummary) query;
 `photo` is optional too: one image per recipe, which can be left out or be `null` (callers built before photos existed keep working). `contentType` must be `"image/jpeg"`, `"image/png"` or `"image/webp"`, and `data` (the file bytes) must not be empty and can be at most 1 MiB (1,048,576 bytes); otherwise `addRecipe` returns `#err` and stores nothing. The backend does not resize or inspect the image; the frontend is expected to scale photos down (to at most 1200 px) before upload. Photos are stored apart from the recipes: `listRecipes` and `searchRecipes` only report `hasPhoto`, and `getRecipePhoto` returns the photo itself, or `null` when the recipe has none or does not exist. Placeholder and seed recipes have no photo.
 
 `addRecipe` requires a signed-in caller: for the anonymous principal it returns `#err("Sign in to add a recipe")` before checking the input, and stores nothing. Otherwise the caller's principal is stored as the recipe's `author` and returned by `getRecipe`. Placeholder and seed recipes, and recipes added before authors were stored, have `author = null`.
+
+`canEditRecipe` tells the caller whether they may edit a recipe (the frontend uses it to decide whether to show Edit and Delete). It returns `true` only if the caller is not anonymous and is the stored `author` of that user-added recipe. Placeholder and seed recipes, recipes added before authors were stored, and unknown ids return `false`, so an anonymous call always returns `false`.
+
+`updateRecipe` and `deleteRecipe` may only be called by the recipe's author, with the same check as `canEditRecipe`. For anyone else they change nothing and return `#err`: `"Recipe not found"` for an unknown id, and `"Only the recipe's author can change it"` otherwise (placeholder and seed recipes and recipes added before authors were stored can never be changed, and an anonymous call always fails).
+
+`updateRecipe` takes the same `NewRecipe` as `addRecipe` and checks it the same way; on invalid input it returns the same `#err` message and changes nothing. On success it replaces the recipe in place: `title`, `markdown`, `servings`, `tags`, `prepMinutes`, `cookMinutes` and `difficulty` are rebuilt from the input, while the id, the `author` and the recipe's position in `listRecipes` stay the same. The id does not change when the name changes, so links to the recipe keep working. A `photo` in the input replaces the stored one; leaving it out (or `null`) keeps the current photo.
+
+`deleteRecipe` removes the recipe and its photo; the other recipes keep their order.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
 
@@ -63,9 +74,11 @@ icp canister call backend searchRecipes '("lentil")'
 icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" }; prepMinutes = opt 5; cookMinutes = opt 10; difficulty = opt variant { easy } })'
 icp canister call backend addRecipe '(record { name = "Toast"; description = ""; servings = 1; ingredients = vec { "1 slice bread" }; steps = vec { "Toast" }; photo = opt record { contentType = "image/jpeg"; data = blob "\ff\d8\ff" } })'
 icp canister call backend getRecipePhoto '("toast")'
+icp canister call backend updateRecipe '("pancakes", record { name = "Fluffy pancakes"; description = "Quick breakfast"; servings = 6; ingredients = vec { "3 eggs"; "1.5 cups flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" } })'
+icp canister call backend deleteRecipe '("toast")'
 ```
 
-`addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`.
+`addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`. `updateRecipe` and `deleteRecipe` only work with the identity that added the recipe; `updateRecipe` keeps the id `pancakes` even though the name changes.
 
 `tags`, `prepMinutes`, `cookMinutes`, `difficulty` and `photo` can all be left out; the first `addRecipe` call above stores a recipe without a photo, and the second one sets `photo` but leaves the other optional fields out.
 

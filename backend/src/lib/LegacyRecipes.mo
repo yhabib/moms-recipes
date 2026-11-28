@@ -66,13 +66,14 @@ module {
   };
 
   /// Copies V2 recipes to V3 with no tags: recipes added before task #24 had
-  /// none, and recipes can't be edited.
+  /// none. These old recipes have no author, so nobody can edit them to add tags.
   public func withTags(old : List.List<RecipeV2>) : List.List<RecipeV3> {
     List.map<RecipeV2, RecipeV3>(old, func r = { r with tags = [] });
   };
 
   /// Copies V3 recipes to V4 with no prep time, cook time or difficulty:
-  /// recipes added before task #47 had none, and recipes can't be edited.
+  /// recipes added before task #47 had none. These old recipes have no author,
+  /// so nobody can edit them to add these details.
   public func withDetails(old : List.List<RecipeV3>) : List.List<RecipeV4> {
     List.map<RecipeV3, RecipeV4>(
       old,
