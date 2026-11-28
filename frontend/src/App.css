@@ -230,11 +230,157 @@
   overflow-x: auto;
 }
 
-.recipe blockquote {
-  margin: var(--space-4) 0;
-  padding: var(--space-2) var(--space-4);
-  border-left: 4px solid var(--accent);
+/* Recipe header: the title, then the tags and the servings scaler on one row. */
+.recipe-header {
+  margin-bottom: var(--space-5);
+}
+
+.recipe .recipe-title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-3xl);
+  letter-spacing: -0.01em;
+}
+
+.recipe-header .added-by-you {
+  margin-bottom: var(--space-3);
+}
+
+.recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.recipe-meta .recipe-tags,
+.recipe-meta .serving-scaler {
+  margin: 0;
+}
+
+.recipe-header .recipe-facts {
+  margin-bottom: 0;
+}
+
+.recipe-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.recipe-actions .add-to-shopping-list {
+  margin-bottom: 0;
+}
+
+/* The description: the first paragraph of the Markdown body. */
+.recipe-body > p:first-child {
+  margin-bottom: var(--space-5);
+  color: var(--muted);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+
+.recipe-body h2 {
+  margin: var(--space-6) 0 var(--space-3);
+}
+
+/* Ingredients: a card with a dot before each item and a thin line between items. */
+.recipe-body > ul {
+  list-style: none;
+  margin: 0 0 var(--space-5);
+  padding: var(--space-2) var(--space-5);
   background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.recipe-body > ul > li {
+  position: relative;
+  margin: 0;
+  padding: var(--space-2) 0 var(--space-2) var(--space-5);
+  line-height: 1.5;
+}
+
+.recipe-body > ul > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.recipe-body > ul > li::before {
+  content: "";
+  position: absolute;
+  left: var(--space-1);
+  /* Centered on the first line of text. */
+  top: calc(var(--space-2) + 0.75em - 4px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Steps: a large accent-colored number in a soft circle, with room between steps. */
+.recipe-body > ol {
+  list-style: none;
+  counter-reset: step;
+  margin: 0 0 var(--space-5);
+  padding: 0;
+}
+
+.recipe-body > ol > li {
+  --step-size: 2.5rem;
+  counter-increment: step;
+  position: relative;
+  min-height: var(--step-size);
+  margin: 0;
+  padding: calc((var(--step-size) - 1lh) / 2) 0 0 calc(var(--step-size) + var(--space-4));
+}
+
+.recipe-body > ol > li + li {
+  margin-top: var(--space-5);
+}
+
+.recipe-body > ol > li::before {
+  content: counter(step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--step-size);
+  height: var(--step-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.recipe-body li > p {
+  margin: 0;
+}
+
+.recipe-body li > p + p {
+  margin-top: var(--space-2);
+}
+
+/* A "> Tip: ..." line becomes a warm callout box. */
+.recipe-body blockquote {
+  margin: var(--space-6) 0 var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+}
+
+.recipe-body blockquote > :last-child {
+  margin-bottom: 0;
 }
 
 .recipe-tags {
@@ -806,6 +952,19 @@
   /* One step smaller on phones, so long titles wrap less. */
   .recipe h1 {
     font-size: var(--text-xl);
+  }
+
+  .recipe .recipe-title {
+    font-size: var(--text-2xl);
+  }
+
+  .recipe-body > ul {
+    padding: var(--space-1) var(--space-4);
+  }
+
+  .recipe-body > ol > li {
+    --step-size: 2.25rem;
+    padding-left: calc(var(--step-size) + var(--space-3));
   }
 
   .recipe h2,
