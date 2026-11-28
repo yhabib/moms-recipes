@@ -64,7 +64,7 @@
 }
 
 .recipe-link:hover {
-  background: var(--border);
+  background: var(--accent-soft);
 }
 
 .recipe-link.active {
@@ -162,7 +162,7 @@
 }
 
 .error {
-  color: #c0392b;
+  color: var(--danger);
 }
 
 @media (max-width: 640px) {
@@ -248,7 +248,7 @@
 }
 
 .recipe-form [aria-invalid="true"] {
-  border-color: #c0392b;
+  border-color: var(--danger);
 }
 
 .field-hint {
@@ -259,7 +259,7 @@
 
 .field-error {
   margin: 0;
-  color: #c0392b;
+  color: var(--danger);
   font-size: 0.875rem;
 }
 
