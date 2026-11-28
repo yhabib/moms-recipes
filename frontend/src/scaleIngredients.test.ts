@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatAmount, scaleRecipeMarkdown, withServings } from "./scaleIngredients";
+import {
+  formatAmount,
+  ingredientLines,
+  scaleRecipeMarkdown,
+  withServings,
+} from "./scaleIngredients";
 
 describe("formatAmount", () => {
   it.each([
@@ -175,5 +180,67 @@ describe("withServings", () => {
 
   it("keeps a recipe with no servings line", () => {
     expect(withServings("# Soup\n- 1 egg\n", 6)).toBe("# Soup\n- 1 egg\n");
+  });
+});
+
+describe("ingredientLines", () => {
+  it("returns [] when there is no Ingredients heading", () => {
+    expect(ingredientLines("# Cake\n\n- 2 eggs\n- 1 cup flour")).toEqual([]);
+    expect(ingredientLines("")).toEqual([]);
+  });
+
+  it("returns the item text without markers or surrounding whitespace", () => {
+    const md = "## Ingredients\n\n- 2 eggs  \n-   1 cup flour\n  - pinch of salt\n- \n";
+    expect(ingredientLines(md)).toEqual(["2 eggs", "1 cup flour", "pinch of salt"]);
+  });
+
+  it("matches the Ingredients heading at any level, any case, with a colon", () => {
+    for (const heading of ["# Ingredients", "### INGREDIENTS", "###### ingredients:", "## Ingredients ##"]) {
+      expect(ingredientLines(`${heading}\n- 2 eggs`)).toEqual(["2 eggs"]);
+    }
+  });
+
+  it("ends the section at the next heading", () => {
+    const md = [
+      "# Cake",
+      "- not an ingredient",
+      "## Ingredients",
+      "- 2 eggs",
+      "Some text",
+      "- 1 cup flour",
+      "## Steps",
+      "- Mix everything",
+    ].join("\n");
+    expect(ingredientLines(md)).toEqual(["2 eggs", "1 cup flour"]);
+  });
+
+  it("ignores lines inside fenced code blocks", () => {
+    const md = [
+      "## Ingredients",
+      "- 2 eggs",
+      "```",
+      "- 3 hidden",
+      "## Not a heading",
+      "```",
+      "~~~~",
+      "- 4 hidden",
+      "~~~",
+      "- 5 hidden",
+      "~~~~",
+      "- 1 cup flour",
+    ].join("\n");
+    expect(ingredientLines(md)).toEqual(["2 eggs", "1 cup flour"]);
+  });
+
+  it("drops the carriage return of Windows line endings", () => {
+    const md = "## Ingredients\r\n- 2 eggs\r\n- 1 cup flour\r\n## Steps\r\n- Mix\r\n";
+    expect(ingredientLines(md)).toEqual(["2 eggs", "1 cup flour"]);
+  });
+
+  it("accepts * list markers", () => {
+    expect(ingredientLines("## Ingredients\n* 2 eggs\n- 1 cup flour")).toEqual([
+      "2 eggs",
+      "1 cup flour",
+    ]);
   });
 });

@@ -1,0 +1,36 @@
+.recipe-photo {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+}
+
+.recipe-photo--hero {
+  aspect-ratio: 16 / 9;
+  max-height: 360px;
+  border-radius: 12px;
+}
+
+.recipe-photo--card {
+  aspect-ratio: 4 / 3;
+}
+
+img.recipe-photo {
+  object-fit: cover;
+}
+
+.recipe-photo__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+.recipe-photo--hero.recipe-photo__placeholder {
+  font-size: clamp(3rem, 12vw, 7rem);
+}
+
+.recipe-photo--card.recipe-photo__placeholder {
+  font-size: 3rem;
+}
