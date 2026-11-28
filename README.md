@@ -51,7 +51,7 @@ icp canister call backend searchRecipes '("lentil")'
 icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" } })'
 ```
 
-The `addRecipe` call works because icp-cli calls with your current identity, which is not anonymous; with `--identity anonymous` it returns `#err("Sign in to add a recipe")`.
+`addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`.
 
 ### Frontend dev server
 
