@@ -1,0 +1,149 @@
+/*
+ * Print styles: a recipe prints on one clean page, with only the recipe.
+ *
+ * App.css is loaded after this file (it is imported by App.tsx), so the rules
+ * below are prefixed with `html` to win over its screen rules of the same
+ * specificity.
+ */
+
+@page {
+  margin: 1.5cm;
+}
+
+@media print {
+  /* Black on white, whatever the system theme. */
+  :root {
+    color-scheme: light;
+    --bg: #ffffff;
+    --fg: #000000;
+    --muted: #444444;
+    --panel: #ffffff;
+    --border: #ffffff;
+    --accent: #000000;
+    --accent-fg: #ffffff;
+  }
+
+  html,
+  html body {
+    background: #ffffff;
+    color: #000000;
+    font-size: 11.5pt;
+    line-height: 1.4;
+  }
+
+  /* Only the recipe: no sidebar, controls or error messages. */
+  html .sidebar,
+  html button,
+  html .serving-scaler,
+  html .recipe-actions,
+  html .no-print,
+  html .content > .error {
+    display: none !important;
+  }
+
+  /* Let the page grow with the recipe instead of filling the screen height,
+     which would push an empty second page. */
+  html,
+  html body,
+  html #root {
+    height: auto;
+  }
+
+  html .layout {
+    display: block;
+    min-height: 0;
+  }
+
+  html .content {
+    padding: 0;
+    max-width: none;
+  }
+
+  /* No decorative backgrounds, borders or shadows. */
+  html .recipe,
+  html .recipe * {
+    background: transparent !important;
+    border-color: transparent;
+    box-shadow: none !important;
+    color: #000000;
+  }
+
+  html .recipe blockquote {
+    margin: 0.5em 0;
+    padding: 0 0 0 1em;
+    border-left: 2px solid #999999;
+  }
+
+  /* Compact spacing so a typical recipe fits on one page. */
+  html .recipe h1,
+  html .recipe h2,
+  html .recipe h3,
+  html .recipe h4 {
+    margin: 0.6em 0 0.25em;
+    line-height: 1.2;
+    break-after: avoid;
+    page-break-after: avoid;
+    break-inside: avoid;
+  }
+
+  html .recipe h1 {
+    margin-top: 0;
+    font-size: 18pt;
+  }
+
+  html .recipe h2 {
+    font-size: 14pt;
+  }
+
+  html .recipe h3 {
+    font-size: 12pt;
+  }
+
+  html .recipe p {
+    margin: 0.35em 0;
+  }
+
+  html .recipe ul,
+  html .recipe ol {
+    margin: 0.35em 0;
+    padding-left: 1.4em;
+  }
+
+  html .recipe li {
+    margin: 0.1em 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  html .recipe img {
+    display: block;
+    max-width: 100%;
+    max-height: 7cm;
+    width: auto;
+    height: auto;
+    margin: 0.5em 0;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Links read as plain text. */
+  html .recipe a {
+    color: #000000;
+    text-decoration: none;
+  }
+
+  /* Tags stay, as small muted text without pills. */
+  html .recipe .recipe-tags {
+    gap: 0 0.75em;
+    margin: 0 0 0.4em;
+    padding: 0;
+  }
+
+  html .recipe .recipe-tag {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    color: #555555;
+    font-size: 9pt;
+  }
+}
