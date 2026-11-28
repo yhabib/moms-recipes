@@ -15,6 +15,7 @@ import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
 import { ShoppingListPage } from "./components/ShoppingList";
 import { TagFilter } from "./components/TagFilter";
+import { pickRandomRecipeId } from "./randomRecipe";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
@@ -89,6 +90,14 @@ function App() {
   const activeId = route.name === "recipe" ? route.id : null;
   const tags = recipes === null ? [] : distinctTags(recipes);
 
+  // Picks from the full list, not the search results, and never the open recipe.
+  const recipeIds = recipes?.map((r) => r.id) ?? [];
+  const canSurprise = recipeIds.some((id) => id !== activeId);
+  const openRandomRecipe = () => {
+    const id = pickRandomRecipeId(recipeIds, activeId);
+    if (id !== null) window.location.hash = hrefFor({ name: "recipe", id });
+  };
+
   let shown: RecipeSummary[] | null;
   let status: ReactNode = null;
   if (searchText === "") {
@@ -124,6 +133,16 @@ function App() {
         >
           + Add a recipe
         </a>
+        <button
+          type="button"
+          className="surprise-button"
+          onClick={openRandomRecipe}
+          disabled={!canSurprise}
+          aria-label="Open a random recipe"
+          title="Open a random recipe"
+        >
+          Surprise me
+        </button>
         <a
           className={route.name === "shoppingList" ? "shopping-list-link active" : "shopping-list-link"}
           href={hrefFor({ name: "shoppingList" })}
