@@ -9,6 +9,10 @@ module {
       title = "Fluffy Pancakes";
       servings = 4;
       tags = ["breakfast", "vegetarian", "quick"];
+      author = null;
+      prepMinutes = ?10;
+      cookMinutes = ?15;
+      difficulty = ?#easy;
       markdown = "# Fluffy Pancakes
 
 Thick, soft pancakes for a weekend breakfast. Makes about 12.
@@ -41,6 +45,10 @@ Thick, soft pancakes for a weekend breakfast. Makes about 12.
       title = "Classic Minestrone";
       servings = 6;
       tags = ["soup", "vegetarian"];
+      author = null;
+      prepMinutes = ?15;
+      cookMinutes = ?35;
+      difficulty = ?#easy;
       markdown = "# Classic Minestrone
 
 A thick Italian vegetable soup with beans and small pasta.
@@ -76,6 +84,10 @@ A thick Italian vegetable soup with beans and small pasta.
       title = "Greek Village Salad";
       servings = 4;
       tags = ["salad", "vegetarian", "quick"];
+      author = null;
+      prepMinutes = ?15;
+      cookMinutes = ?0;
+      difficulty = ?#easy;
       markdown = "# Greek Village Salad
 
 Horiatiki: a chunky salad with no lettuce, topped with a slab of feta.
@@ -108,6 +120,10 @@ Horiatiki: a chunky salad with no lettuce, topped with a slab of feta.
       title = "Spaghetti Carbonara";
       servings = 4;
       tags = ["pasta", "main", "quick"];
+      author = null;
+      prepMinutes = ?10;
+      cookMinutes = ?15;
+      difficulty = ?#medium;
       markdown = "# Spaghetti Carbonara
 
 The Roman classic: eggs, cheese, cured pork and black pepper, no cream.
@@ -140,6 +156,10 @@ The Roman classic: eggs, cheese, cured pork and black pepper, no cream.
       title = "Weeknight Chicken Curry";
       servings = 4;
       tags = ["chicken", "main"];
+      author = null;
+      prepMinutes = ?15;
+      cookMinutes = ?45;
+      difficulty = ?#easy;
       markdown = "# Weeknight Chicken Curry
 
 A mild, creamy tomato curry. Serve with rice or naan.
@@ -175,6 +195,10 @@ A mild, creamy tomato curry. Serve with rice or naan.
       title = "Hearty Beef Stew";
       servings = 6;
       tags = ["beef", "main"];
+      author = null;
+      prepMinutes = ?30;
+      cookMinutes = ?165;
+      difficulty = ?#medium;
       markdown = "# Hearty Beef Stew
 
 Slow-cooked beef with red wine, carrots and potatoes.
@@ -212,6 +236,10 @@ Slow-cooked beef with red wine, carrots and potatoes.
       title = "Lemon Garlic Baked Salmon";
       servings = 4;
       tags = ["fish", "main", "quick"];
+      author = null;
+      prepMinutes = ?10;
+      cookMinutes = ?15;
+      difficulty = ?#easy;
       markdown = "# Lemon Garlic Baked Salmon
 
 ## Ingredients
@@ -240,6 +268,10 @@ Slow-cooked beef with red wine, carrots and potatoes.
       title = "Provençal Ratatouille";
       servings = 6;
       tags = ["vegan", "vegetarian", "main"];
+      author = null;
+      prepMinutes = ?20;
+      cookMinutes = ?60;
+      difficulty = ?#medium;
       markdown = "# Provençal Ratatouille
 
 A summer vegetable stew from the south of France.
@@ -275,6 +307,10 @@ A summer vegetable stew from the south of France.
       title = "Chunky Guacamole";
       servings = 4;
       tags = ["side dish", "vegan", "quick"];
+      author = null;
+      prepMinutes = ?10;
+      cookMinutes = ?0;
+      difficulty = ?#easy;
       markdown = "# Chunky Guacamole
 
 ## Ingredients
@@ -302,6 +338,10 @@ A summer vegetable stew from the south of France.
       title = "Classic Banana Bread";
       servings = 10;
       tags = ["baking", "dessert", "breakfast"];
+      author = null;
+      prepMinutes = ?15;
+      cookMinutes = ?60;
+      difficulty = ?#easy;
       markdown = "# Classic Banana Bread
 
 The best use for very ripe, spotty bananas. Makes one loaf.
@@ -334,6 +374,10 @@ The best use for very ripe, spotty bananas. Makes one loaf.
       title = "Chewy Chocolate Chip Cookies";
       servings = 24;
       tags = ["dessert", "baking"];
+      author = null;
+      prepMinutes = ?20;
+      cookMinutes = ?25;
+      difficulty = ?#easy;
       markdown = "# Chewy Chocolate Chip Cookies
 
 Makes about 24 cookies.
@@ -368,6 +412,10 @@ Makes about 24 cookies.
       title = "Creamy Rice Pudding";
       servings = 4;
       tags = ["dessert", "vegetarian"];
+      author = null;
+      prepMinutes = ?5;
+      cookMinutes = ?40;
+      difficulty = ?#easy;
       markdown = "# Creamy Rice Pudding
 
 A slow-stirred stovetop pudding, good warm or cold.
