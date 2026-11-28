@@ -13,20 +13,32 @@ type RecipeSummary =
  };
 type Recipe = 
  record {
+   cookMinutes: opt nat;
+   difficulty: opt Difficulty;
    id: text;
    markdown: text;
+   prepMinutes: opt nat;
    servings: nat;
    tags: vec text;
    title: text;
  };
 type NewRecipe = 
  record {
+   cookMinutes: opt nat;
    description: text;
+   difficulty: opt Difficulty;
    ingredients: vec text;
    name: text;
+   prepMinutes: opt nat;
    servings: nat;
    steps: vec text;
    tags: opt vec text;
+ };
+type Difficulty = 
+ variant {
+   easy;
+   hard;
+   medium;
  };
 service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
