@@ -3,6 +3,7 @@ import Char "mo:core/Char";
 import List "mo:core/List";
 import Nat "mo:core/Nat";
 import Nat32 "mo:core/Nat32";
+import Principal "mo:core/Principal";
 import Result "mo:core/Result";
 import Text "mo:core/Text";
 import Types "../types";
@@ -181,6 +182,36 @@ module {
       n += 1;
     };
     md;
+  };
+
+  /// Error returned when the caller is not the author of an existing recipe.
+  public let notAuthorMessage = "Only the recipe's author can change it";
+
+  /// `#ok` if `caller` may edit `recipe`: the caller is not anonymous and is
+  /// its stored `author`. Recipes without an author are never editable.
+  public func checkEditor(recipe : Types.Recipe, caller : Principal) : Result.Result<(), Text> {
+    switch (recipe.author) {
+      case (?author) if (not Principal.isAnonymous(caller) and author == caller) #ok else #err(notAuthorMessage);
+      case null #err(notAuthorMessage);
+    };
+  };
+
+  /// Validates `input` and builds the new version of `old`: same id and
+  /// author, with title, Markdown, servings, tags and details from `input`.
+  public func update(old : Types.Recipe, input : Types.NewRecipe) : Result.Result<Types.Recipe, Text> {
+    switch (validate(input)) {
+      case (#err(e)) #err(e);
+      case (#ok(r)) #ok({
+        old with
+        title = r.name;
+        markdown = toMarkdown(r);
+        servings = r.servings;
+        tags = r.tags;
+        prepMinutes = r.prepMinutes;
+        cookMinutes = r.cookMinutes;
+        difficulty = r.difficulty;
+      });
+    };
   };
 
   /// Validates `input` and builds the stored recipe with a free id, added by `author`.
