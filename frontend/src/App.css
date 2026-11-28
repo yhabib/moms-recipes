@@ -21,6 +21,46 @@
   text-decoration: none;
 }
 
+.auth {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.auth-principal {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.auth-button {
+  flex: none;
+  margin-left: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  background: var(--bg);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-button:hover {
+  background: var(--border);
+}
+
+.auth-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .recipe-search {
   margin-bottom: 12px;
 }
