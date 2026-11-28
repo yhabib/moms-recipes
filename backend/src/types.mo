@@ -12,8 +12,14 @@ module {
 
   /// Lightweight entry for listing recipes without shipping every body.
   public type RecipeSummary = {
+    /// Same id as the full recipe; pass it to `getRecipe`.
     id : Text;
+    /// The recipe's name.
     title : Text;
+    /// The recipe's short intro text, at most about 200 characters; "" when it has none.
+    description : Text;
+    /// Number of servings the recipe is written for.
+    servings : Nat;
     /// Same as `Recipe.tags`: short lowercase labels; may be empty.
     tags : [Text];
   };
