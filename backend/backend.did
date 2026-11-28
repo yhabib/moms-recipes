@@ -54,6 +54,9 @@ type Difficulty =
    medium;
  };
 service : {
+  /// Adds a recipe to the caller's favourites. Anonymous callers and unknown
+  /// recipe ids get `#err`; adding a recipe that is already a favourite is `#ok`.
+  addFavourite: (recipeId: text) -> (Result);
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
   /// The caller must be signed in (not the anonymous principal) and is stored as
   /// the recipe's `author`.
@@ -70,7 +73,13 @@ service : {
   getRecipe: (id: text) -> (opt Recipe) query;
   /// The photo of the recipe with this id, or null if it has none or does not exist.
   getRecipePhoto: (id: text) -> (opt Photo) query;
+  /// The caller's favourite recipes, in `listRecipes` order. Anonymous callers
+  /// and callers without favourites get []; ids of missing recipes are skipped.
+  listFavourites: () -> (vec RecipeSummary) query;
   listRecipes: () -> (vec RecipeSummary) query;
+  /// Removes a recipe from the caller's favourites. Anonymous callers get
+  /// `#err`; removing an id that is not a favourite is `#ok`.
+  removeFavourite: (recipeId: text) -> (Result);
   /// Recipes whose title or ingredient lines contain `searchText` (trimmed,
   /// case-insensitive), in `listRecipes` order. Empty or over-long queries return [].
   searchRecipes: (searchText: text) -> (vec RecipeSummary) query;

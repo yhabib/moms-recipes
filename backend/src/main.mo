@@ -1,6 +1,8 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
 import Map "mo:core/Map";
+import Principal "mo:core/Principal";
+import Set "mo:core/Set";
 import LegacyRecipes "lib/LegacyRecipes";
 import PlaceholderRecipes "lib/PlaceholderRecipes";
 import SeedRecipes "lib/SeedRecipes";
@@ -48,8 +50,13 @@ actor {
   // without a photo have no entry.
   let recipePhotos = Map.empty<Text, Types.Photo>();
 
+  // Favourite recipe ids per signed-in principal, written by `addFavourite`
+  // and `removeFavourite`. Ids of recipes that no longer exist are skipped
+  // when listing.
+  let favouritesByUser = Map.empty<Principal, Set.Set<Text>>();
+
   // The placeholder and seed recipes are hard-coded in the code, not stored in
   // actor state; they are served first, followed by the added recipes. They
   // have no photos.
-  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithAuthor, recipePhotos);
+  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithAuthor, recipePhotos, favouritesByUser);
 };

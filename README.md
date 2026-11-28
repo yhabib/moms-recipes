@@ -18,6 +18,9 @@ addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
               // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text;
               //             prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty; photo : opt Photo }
               // Difficulty = variant { easy; medium; hard }
+addFavourite    : (recipeId : text) -> (variant { ok; err : text });
+removeFavourite : (recipeId : text) -> (variant { ok; err : text });
+listFavourites  : () -> (vec RecipeSummary) query;
 canEditRecipe : (id : text) -> (bool) query;
 updateRecipe : (id : text, NewRecipe) -> (variant { ok; err : text });
 deleteRecipe : (id : text) -> (variant { ok; err : text });
@@ -42,6 +45,8 @@ deleteRecipe : (id : text) -> (variant { ok; err : text });
 `deleteRecipe` removes the recipe and its photo; the other recipes keep their order.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
+
+`addFavourite`, `removeFavourite` and `listFavourites` keep a list of favourite recipes for each caller, identified by `msg.caller` (the principal the frontend gets from Internet Identity). The list is stored in the canister and survives upgrades. An anonymous caller gets `#err("Sign in to save favourites.")` from `addFavourite` and `removeFavourite`, and `vec {}` from `listFavourites`. `addFavourite` returns `#err("Recipe not found.")` for an id that is not a placeholder, seed or added recipe; adding a recipe that is already a favourite, or removing one that is not, returns `#ok` and changes nothing. `listFavourites` returns the caller's favourites as `RecipeSummary` values in the same order as `listRecipes`, skipping ids of recipes that no longer exist.
 
 Code layout follows the multi-file Motoko convention: `types.mo` (types), `lib/` (domain logic and data), `mixins/` (public API), `main.mo` (composition only).
 
@@ -76,6 +81,14 @@ icp canister call backend deleteRecipe '("toast")'
 `addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`. `updateRecipe` and `deleteRecipe` only work with the identity that added the recipe; `updateRecipe` keeps the id `pancakes` even though the name changes.
 
 `tags`, `prepMinutes`, `cookMinutes`, `difficulty` and `photo` can all be left out; the first `addRecipe` call above stores a recipe without a photo, and the second one sets `photo` but leaves the other optional fields out.
+
+Favourites need a non-anonymous identity (`icp identity new alice` once, then pass `--identity alice`):
+
+```bash
+icp canister call backend addFavourite '("apple-cake")' --identity alice
+icp canister call backend listFavourites '()' --identity alice
+icp canister call backend removeFavourite '("apple-cake")' --identity alice
+```
 
 ### Sign in
 
