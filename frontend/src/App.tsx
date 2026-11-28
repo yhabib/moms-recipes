@@ -13,6 +13,7 @@ import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipePhoto } from "./components/RecipePhoto";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
+import { ShoppingListPage } from "./components/ShoppingList";
 import { TagFilter } from "./components/TagFilter";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
@@ -123,6 +124,13 @@ function App() {
         >
           + Add a recipe
         </a>
+        <a
+          className={route.name === "shoppingList" ? "shopping-list-link active" : "shopping-list-link"}
+          href={hrefFor({ name: "shoppingList" })}
+          aria-current={route.name === "shoppingList" ? "page" : undefined}
+        >
+          Shopping list
+        </a>
         <RecipeSearch value={query} onChange={changeQuery} />
         <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
         <div role="status">{status}</div>
@@ -166,6 +174,8 @@ function Page({
       return <AddRecipeForm />;
     case "recipe":
       return <RecipePage id={route.id} />;
+    case "shoppingList":
+      return <ShoppingListPage />;
     case "notFound":
       return <NotFound message="Page not found." />;
   }
