@@ -1,7 +1,9 @@
 import List "mo:core/List";
+import Map "mo:core/Map";
 import LegacyRecipes "lib/LegacyRecipes";
 import PlaceholderRecipes "lib/PlaceholderRecipes";
 import RecipesMixin "mixins/Recipes";
+import Types "types";
 
 actor {
   // Persistent variables: the project builds with --default-persistent-actors,
@@ -24,5 +26,11 @@ actor {
   // tags.
   let addedRecipesWithTags = LegacyRecipes.withTags(addedRecipesWithServings);
 
-  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithTags);
+  // Photos of recipes added through `addRecipe`, keyed by recipe id. Kept
+  // apart from the recipes so `Types.Recipe` (the element type of the lists
+  // above) stays unchanged across upgrades. Recipes without a photo have no
+  // entry.
+  let recipePhotos = Map.empty<Text, Types.Photo>();
+
+  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithTags, recipePhotos);
 };

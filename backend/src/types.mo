@@ -10,6 +10,13 @@ module {
     tags : [Text];
   };
 
+  /// An image attached to a recipe. `data` holds the raw file bytes.
+  public type Photo = {
+    /// MIME type: "image/jpeg", "image/png" or "image/webp".
+    contentType : Text;
+    data : Blob;
+  };
+
   /// Lightweight entry for listing recipes without shipping every body.
   public type RecipeSummary = {
     /// Same id as the full recipe; pass it to `getRecipe`.
@@ -22,6 +29,8 @@ module {
     servings : Nat;
     /// The recipe's tags; may be empty.
     tags : [Text];
+    /// Whether the recipe has a photo; fetch it with `getRecipePhoto`.
+    hasPhoto : Bool;
   };
 
   /// Input for `addRecipe`. The backend validates it, builds the Markdown
@@ -35,5 +44,8 @@ module {
     /// Optional so callers built before tags existed (which omit the field)
     /// stay compatible; `null` means no tags.
     tags : ?[Text];
+    /// Optional so callers that omit the field stay compatible; `null` means
+    /// no photo. JPEG, PNG or WebP, at most 1 MiB.
+    photo : ?Photo;
   };
 };

@@ -15,6 +15,8 @@ module {
   public let maxLines = 100;
   public let maxTags = 10;
   public let maxTagLength = 30;
+  public let maxPhotoBytes = 1_048_576;
+  public let photoContentTypes = ["image/jpeg", "image/png", "image/webp"];
 
   /// A `NewRecipe` after trimming and validation.
   public type ValidRecipe = {
@@ -58,6 +60,16 @@ module {
     #ok(List.toArray(kept));
   };
 
+  /// Checks the photo's type and size.
+  func checkPhoto(photo : Types.Photo) : Result.Result<(), Text> {
+    if (Array.find<Text>(photoContentTypes, func t = t == photo.contentType) == null) {
+      return #err("Photo must be a JPEG, PNG or WebP image");
+    };
+    if (photo.data.size() == 0) return #err("Photo must not be empty");
+    if (photo.data.size() > maxPhotoBytes) return #err("Photo can be at most 1 MB");
+    #ok;
+  };
+
   /// Trims the input and checks it. Returns a short readable message on failure.
   public func validate(input : Types.NewRecipe) : Result.Result<ValidRecipe, Text> {
     let name = trim(input.name);
@@ -80,6 +92,13 @@ module {
     let tags = switch (cleanTags(rawTags)) {
       case (#ok(l)) l;
       case (#err(e)) return #err(e);
+    };
+    switch (input.photo) {
+      case (?photo) switch (checkPhoto(photo)) {
+        case (#err(e)) return #err(e);
+        case (#ok) {};
+      };
+      case null {};
     };
     #ok({ name; description; servings = input.servings; ingredients; steps; tags });
   };
