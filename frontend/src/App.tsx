@@ -4,6 +4,7 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { RecipeCard } from "./components/RecipeCard";
+import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
 import { TagFilter } from "./components/TagFilter";
@@ -239,6 +240,11 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
   return (
     <article className="recipe">
       <RecipeTags tags={recipe.tags} />
+      <RecipeFacts
+        prepMinutes={recipe.prepMinutes}
+        cookMinutes={recipe.cookMinutes}
+        difficulty={recipe.difficulty}
+      />
       {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
       <Markdown>
         {baseServings > 0
