@@ -1,14 +1,23 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Map "mo:core/Map";
+import Principal "mo:core/Principal";
 import Result "mo:core/Result";
+import Text "mo:core/Text";
 import RecipesLib "../lib/Recipes";
 import Search "../lib/Search";
 import Summary "../lib/Summary";
 import Types "../types";
 
 /// Public recipe API. main.mo injects the hard-coded `placeholders` and the
-/// persistent `added` list, which keeps user-added recipes in insertion order.
-mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
+/// persistent `added` list, which keeps user-added recipes in insertion order,
+/// and the persistent `authors` map from a user-added recipe's id to the
+/// principal that added it.
+mixin (
+  placeholders : [Types.Recipe],
+  added : List.List<Types.Recipe>,
+  authors : Map.Map<Text, Principal>,
+) {
   func findRecipe(id : Text) : ?Types.Recipe {
     switch (Array.find<Types.Recipe>(placeholders, func r = r.id == id)) {
       case (?r) ?r;
@@ -48,13 +57,30 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
   };
 
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
-  public func addRecipe(input : Types.NewRecipe) : async Result.Result<Text, Text> {
+  /// A non-anonymous caller is remembered as the recipe's author.
+  public shared ({ caller }) func addRecipe(input : Types.NewRecipe) : async Result.Result<Text, Text> {
     switch (RecipesLib.create(input, func id = findRecipe(id) != null)) {
       case (#err(e)) #err(e);
       case (#ok(recipe)) {
         List.add(added, recipe);
+        if (not Principal.isAnonymous(caller)) {
+          Map.add(authors, Text.compare, recipe.id, caller);
+        };
         #ok(recipe.id);
       };
+    };
+  };
+
+  /// True if the caller may edit the recipe: the caller is not anonymous and
+  /// added this recipe through `addRecipe`. Placeholder and seed recipes,
+  /// recipes added before authors were recorded or added anonymously, and
+  /// unknown ids return false.
+  public shared query ({ caller }) func canEditRecipe(id : Text) : async Bool {
+    if (Principal.isAnonymous(caller)) return false;
+    if (Array.find<Types.Recipe>(placeholders, func r = r.id == id) != null) return false;
+    switch (Map.get(authors, Text.compare, id)) {
+      case (?author) author == caller;
+      case null false;
     };
   };
 };

@@ -15,11 +15,16 @@ getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; ser
 searchRecipes : (searchText : text) -> (vec RecipeSummary) query;
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
               // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text }
+canEditRecipe : (id : text) -> (bool) query;
 ```
 
 `addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
 
 `tags` are short labels such as `"soup"` or `"vegetarian"` and are optional: the field can be left out or be an empty list (it is `opt` so that callers built before tags existed keep working). Each tag is trimmed and lowercased; blank tags and duplicates are dropped, keeping the first occurrence and its order (`opt vec { " Soup "; "soup"; "Quick" }` is stored as `vec { "soup"; "quick" }`). After cleaning there can be at most 10 tags of up to 30 characters each, otherwise `addRecipe` returns `#err`. Tags are returned by `getRecipe` but are not part of the Markdown. Recipes added before tags existed have `tags = vec {}`.
+
+When `addRecipe` is called by a signed-in (non-anonymous) caller, the backend remembers that caller's principal as the recipe's author. Anonymous callers can still add recipes, but those recipes have no author.
+
+`canEditRecipe` tells the caller whether they may edit a recipe (the frontend uses it to decide whether to show Edit and Delete). It returns `true` only if the caller is not anonymous and is the recorded author of that user-added recipe. Placeholder and seed recipes, recipes added before authors were recorded, recipes added anonymously and unknown ids return `false`, so an anonymous call always returns `false`.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
 

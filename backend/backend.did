@@ -30,7 +30,13 @@ type NewRecipe =
  };
 service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
+  /// A non-anonymous caller is remembered as the recipe's author.
   addRecipe: (input: NewRecipe) -> (Result);
+  /// True if the caller may edit the recipe: the caller is not anonymous and
+  /// added this recipe through `addRecipe`. Placeholder and seed recipes,
+  /// recipes added before authors were recorded or added anonymously, and
+  /// unknown ids return false.
+  canEditRecipe: (id: text) -> (bool) query;
   getRecipe: (id: text) -> (opt Recipe) query;
   listRecipes: () -> (vec RecipeSummary) query;
   /// Recipes whose title or ingredient lines contain `searchText` (trimmed,

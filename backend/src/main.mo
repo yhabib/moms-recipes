@@ -1,5 +1,6 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Map "mo:core/Map";
 import LegacyRecipes "lib/LegacyRecipes";
 import PlaceholderRecipes "lib/PlaceholderRecipes";
 import SeedRecipes "lib/SeedRecipes";
@@ -26,7 +27,12 @@ actor {
   // tags.
   let addedRecipesWithTags = LegacyRecipes.withTags(addedRecipesWithServings);
 
+  // Author of each recipe added through `addRecipe` by a non-anonymous caller,
+  // keyed by recipe id. Recipes added before task #60, or added anonymously,
+  // have no entry.
+  let recipeAuthors = Map.empty<Text, Principal>();
+
   // The placeholder and seed recipes are hard-coded in the code, not stored in
   // actor state; they are served first, followed by the added recipes.
-  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithTags);
+  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithTags, recipeAuthors);
 };
