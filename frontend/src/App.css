@@ -382,3 +382,51 @@
 .recipe-card .recipe-tags {
   margin: 0;
 }
+
+/* Sidebar chips that narrow the recipe list to one tag. */
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tag-filter-chip {
+  padding: 2px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  cursor: pointer;
+  /* A long tag wraps inside its chip instead of widening the sidebar. */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.tag-filter-chip:hover {
+  border-color: var(--accent);
+  color: inherit;
+}
+
+.tag-filter-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tag-filter-chip.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+
+@media (max-width: 640px) {
+  .tag-filter-chip {
+    /* Bigger touch targets on phones. */
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+}
