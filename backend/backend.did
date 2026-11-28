@@ -6,6 +6,7 @@ type Result =
 type RecipeSummary = 
  record {
    description: text;
+   hasPhoto: bool;
    id: text;
    servings: nat;
    tags: vec text;
@@ -13,6 +14,7 @@ type RecipeSummary =
  };
 type Recipe = 
  record {
+   author: opt principal;
    cookMinutes: opt nat;
    difficulty: opt Difficulty;
    id: text;
@@ -22,6 +24,11 @@ type Recipe =
    tags: vec text;
    title: text;
  };
+type Photo = 
+ record {
+   contentType: text;
+   data: blob;
+ };
 type NewRecipe = 
  record {
    cookMinutes: opt nat;
@@ -29,6 +36,7 @@ type NewRecipe =
    difficulty: opt Difficulty;
    ingredients: vec text;
    name: text;
+   photo: opt Photo;
    prepMinutes: opt nat;
    servings: nat;
    steps: vec text;
@@ -42,8 +50,12 @@ type Difficulty =
  };
 service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
+  /// The caller must be signed in (not the anonymous principal) and is stored as
+  /// the recipe's `author`.
   addRecipe: (input: NewRecipe) -> (Result);
   getRecipe: (id: text) -> (opt Recipe) query;
+  /// The photo of the recipe with this id, or null if it has none or does not exist.
+  getRecipePhoto: (id: text) -> (opt Photo) query;
   listRecipes: () -> (vec RecipeSummary) query;
   /// Recipes whose title or ingredient lines contain `searchText` (trimmed,
   /// case-insensitive), in `listRecipes` order. Empty or over-long queries return [].

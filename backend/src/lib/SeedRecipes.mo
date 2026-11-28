@@ -9,6 +9,7 @@ module {
       title = "Fluffy Pancakes";
       servings = 4;
       tags = ["breakfast", "vegetarian", "quick"];
+      author = null;
       prepMinutes = ?10;
       cookMinutes = ?15;
       difficulty = ?#easy;
@@ -44,6 +45,7 @@ Thick, soft pancakes for a weekend breakfast. Makes about 12.
       title = "Classic Minestrone";
       servings = 6;
       tags = ["soup", "vegetarian"];
+      author = null;
       prepMinutes = ?15;
       cookMinutes = ?35;
       difficulty = ?#easy;
@@ -82,6 +84,7 @@ A thick Italian vegetable soup with beans and small pasta.
       title = "Greek Village Salad";
       servings = 4;
       tags = ["salad", "vegetarian", "quick"];
+      author = null;
       prepMinutes = ?15;
       cookMinutes = ?0;
       difficulty = ?#easy;
@@ -117,6 +120,7 @@ Horiatiki: a chunky salad with no lettuce, topped with a slab of feta.
       title = "Spaghetti Carbonara";
       servings = 4;
       tags = ["pasta", "main", "quick"];
+      author = null;
       prepMinutes = ?10;
       cookMinutes = ?15;
       difficulty = ?#medium;
@@ -152,6 +156,7 @@ The Roman classic: eggs, cheese, cured pork and black pepper, no cream.
       title = "Weeknight Chicken Curry";
       servings = 4;
       tags = ["chicken", "main"];
+      author = null;
       prepMinutes = ?15;
       cookMinutes = ?45;
       difficulty = ?#easy;
@@ -190,6 +195,7 @@ A mild, creamy tomato curry. Serve with rice or naan.
       title = "Hearty Beef Stew";
       servings = 6;
       tags = ["beef", "main"];
+      author = null;
       prepMinutes = ?30;
       cookMinutes = ?165;
       difficulty = ?#medium;
@@ -230,6 +236,7 @@ Slow-cooked beef with red wine, carrots and potatoes.
       title = "Lemon Garlic Baked Salmon";
       servings = 4;
       tags = ["fish", "main", "quick"];
+      author = null;
       prepMinutes = ?10;
       cookMinutes = ?15;
       difficulty = ?#easy;
@@ -261,6 +268,7 @@ Slow-cooked beef with red wine, carrots and potatoes.
       title = "Provençal Ratatouille";
       servings = 6;
       tags = ["vegan", "vegetarian", "main"];
+      author = null;
       prepMinutes = ?20;
       cookMinutes = ?60;
       difficulty = ?#medium;
@@ -299,6 +307,7 @@ A summer vegetable stew from the south of France.
       title = "Chunky Guacamole";
       servings = 4;
       tags = ["side dish", "vegan", "quick"];
+      author = null;
       prepMinutes = ?10;
       cookMinutes = ?0;
       difficulty = ?#easy;
@@ -329,6 +338,7 @@ A summer vegetable stew from the south of France.
       title = "Classic Banana Bread";
       servings = 10;
       tags = ["baking", "dessert", "breakfast"];
+      author = null;
       prepMinutes = ?15;
       cookMinutes = ?60;
       difficulty = ?#easy;
@@ -364,6 +374,7 @@ The best use for very ripe, spotty bananas. Makes one loaf.
       title = "Chewy Chocolate Chip Cookies";
       servings = 24;
       tags = ["dessert", "baking"];
+      author = null;
       prepMinutes = ?20;
       cookMinutes = ?25;
       difficulty = ?#easy;
@@ -401,6 +412,7 @@ Makes about 24 cookies.
       title = "Creamy Rice Pudding";
       servings = 4;
       tags = ["dessert", "vegetarian"];
+      author = null;
       prepMinutes = ?5;
       cookMinutes = ?40;
       difficulty = ?#easy;

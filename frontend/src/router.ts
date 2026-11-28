@@ -9,6 +9,7 @@ export type Route =
   | { name: "home" }
   | { name: "newRecipe" }
   | { name: "recipe"; id: string }
+  | { name: "shoppingList" }
   | { name: "notFound"; path: string };
 
 /** Parses a location hash such as `#/recipes/apple-cake` into a route. */
@@ -18,6 +19,8 @@ export function parseRoute(hash: string): Route {
 
   // Checked before `/recipes/:id` so that "new" is never read as a recipe id.
   if (/^\/recipes\/new\/?$/.test(path)) return { name: "newRecipe" };
+
+  if (/^\/shopping-list\/?$/.test(path)) return { name: "shoppingList" };
 
   const recipe = /^\/recipes\/([^/]+)\/?$/.exec(path);
   if (recipe) {
@@ -40,6 +43,8 @@ export function hrefFor(route: Route): string {
       return "#/recipes/new";
     case "recipe":
       return `#/recipes/${encodeURIComponent(route.id)}`;
+    case "shoppingList":
+      return "#/shopping-list";
     case "notFound":
       return `#${route.path}`;
   }

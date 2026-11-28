@@ -8,6 +8,7 @@ module {
       title = "Mom's Lentil Soup";
       servings = 4;
       tags = ["soup", "vegetarian"];
+      author = null;
       prepMinutes = ?10;
       cookMinutes = ?40;
       difficulty = ?#easy;
@@ -41,6 +42,7 @@ A cozy, one-pot soup for cold evenings.
       title = "Sunday Apple Cake";
       servings = 8;
       tags = ["dessert", "baking"];
+      author = null;
       prepMinutes = ?20;
       cookMinutes = ?45;
       difficulty = ?#medium;
@@ -70,6 +72,7 @@ A cozy, one-pot soup for cold evenings.
       title = "Tomato Rice";
       servings = 4;
       tags = ["side dish", "vegetarian"];
+      author = null;
       prepMinutes = ?10;
       cookMinutes = ?35;
       difficulty = ?#easy;

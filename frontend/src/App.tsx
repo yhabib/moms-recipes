@@ -1,14 +1,23 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
+import { AddedByYou } from "./components/AddedByYou";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { AddToShoppingListButton } from "./components/AddToShoppingListButton";
+import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
+import { CookMode } from "./components/CookMode";
 import { RecipeActions } from "./components/RecipeActions";
-import { RecipeCard } from "./components/RecipeCard";
+import { RecipeCards } from "./components/RecipeCards";
+import { RecipeFacts } from "./components/RecipeFacts";
+import { RecipePhoto } from "./components/RecipePhoto";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
+import { ShoppingListPage } from "./components/ShoppingList";
 import { TagFilter } from "./components/TagFilter";
+import { pickRandomRecipeId } from "./randomRecipe";
+import { splitTitle } from "./recipeMarkdown";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
@@ -83,6 +92,14 @@ function App() {
   const activeId = route.name === "recipe" ? route.id : null;
   const tags = recipes === null ? [] : distinctTags(recipes);
 
+  // Picks from the full list, not the search results, and never the open recipe.
+  const recipeIds = recipes?.map((r) => r.id) ?? [];
+  const canSurprise = recipeIds.some((id) => id !== activeId);
+  const openRandomRecipe = () => {
+    const id = pickRandomRecipeId(recipeIds, activeId);
+    if (id !== null) window.location.hash = hrefFor({ name: "recipe", id });
+  };
+
   let shown: RecipeSummary[] | null;
   let status: ReactNode = null;
   if (searchText === "") {
@@ -109,10 +126,7 @@ function App() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <h1 className="app-title">
-          <a href={hrefFor({ name: "home" })}>Mom's Recipes</a>
-        </h1>
+      <AppNav route={route}>
         <AuthButton />
         <a
           className={route.name === "newRecipe" ? "add-recipe-link active" : "add-recipe-link"}
@@ -120,6 +134,23 @@ function App() {
           aria-current={route.name === "newRecipe" ? "page" : undefined}
         >
           + Add a recipe
+        </a>
+        <button
+          type="button"
+          className="surprise-button"
+          onClick={openRandomRecipe}
+          disabled={!canSurprise}
+          aria-label="Open a random recipe"
+          title="Open a random recipe"
+        >
+          Surprise me
+        </button>
+        <a
+          className={route.name === "shoppingList" ? "shopping-list-link active" : "shopping-list-link"}
+          href={hrefFor({ name: "shoppingList" })}
+          aria-current={route.name === "shoppingList" ? "page" : undefined}
+        >
+          Shopping list
         </a>
         <RecipeSearch value={query} onChange={changeQuery} />
         <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
@@ -139,7 +170,7 @@ function App() {
             ))}
           </ul>
         </nav>
-      </aside>
+      </AppNav>
       <main className={route.name === "home" ? "content content-wide" : "content"}>
         {error && <p className="error">Could not reach the backend: {error}</p>}
         <Page route={route} recipes={recipes} failed={error !== null} />
@@ -164,13 +195,15 @@ function Page({
       return <AddRecipeForm />;
     case "recipe":
       return <RecipePage id={route.id} />;
+    case "shoppingList":
+      return <ShoppingListPage />;
     case "notFound":
       return <NotFound message="Page not found." />;
   }
 }
 
 /**
- * Every recipe as a card, in `listRecipes` order. Always the full list:
+ * Every recipe as a card with its photo, in `listRecipes` order. Always the full list:
  * the sidebar search does not filter it.
  */
 function HomePage({ recipes, failed }: { recipes: RecipeSummary[] | null; failed: boolean }) {
@@ -178,22 +211,8 @@ function HomePage({ recipes, failed }: { recipes: RecipeSummary[] | null; failed
   if (recipes === null) {
     // When loading failed, the error above the page already says so.
     body = failed ? null : <p className="muted">Loading…</p>;
-  } else if (recipes.length === 0) {
-    body = (
-      <p className="muted">
-        No recipes yet. <a href={hrefFor({ name: "newRecipe" })}>Add the first one</a>
-      </p>
-    );
   } else {
-    body = (
-      <ul className="recipe-grid">
-        {recipes.map((r) => (
-          <li key={r.id}>
-            <RecipeCard recipe={r} />
-          </li>
-        ))}
-      </ul>
-    );
+    body = <RecipeCards recipes={recipes} />;
   }
   return (
     <section className="home" aria-labelledby="home-heading">
@@ -239,16 +258,54 @@ function RecipePage({ id }: { id: string }) {
 function RecipeView({ recipe }: { recipe: Recipe }) {
   const baseServings = Number(recipe.servings);
   const [servings, setServings] = useState(baseServings);
+  const [cooking, setCooking] = useState(false);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+  const wasCookingRef = useRef(false);
+  const markdown =
+    baseServings > 0
+      ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
+      : recipe.markdown;
+  // The header shows the title, so the Markdown body leaves out its `# Title` line.
+  const { body } = splitTitle(markdown);
+
+  // When cook mode closes, give focus back to the button that opened it.
+  // This runs after CookMode has unmounted, so it has the last word on focus.
+  useEffect(() => {
+    if (wasCookingRef.current && !cooking) startButtonRef.current?.focus();
+    wasCookingRef.current = cooking;
+  }, [cooking]);
+
   return (
     <article className="recipe">
       <RecipeActions id={recipe.id} />
-      <RecipeTags tags={recipe.tags} />
-      {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
-      <Markdown>
-        {baseServings > 0
-          ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
-          : recipe.markdown}
-      </Markdown>
+      <header className="recipe-header">
+        <h1 className="recipe-title">{recipe.title}</h1>
+        <AddedByYou author={recipe.author ?? null} />
+        {(recipe.tags.length > 0 || baseServings > 0) && (
+          <div className="recipe-meta">
+            <RecipeTags tags={recipe.tags} />
+            {baseServings > 0 && (
+              <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />
+            )}
+          </div>
+        )}
+        <RecipeFacts
+          prepMinutes={recipe.prepMinutes}
+          cookMinutes={recipe.cookMinutes}
+          difficulty={recipe.difficulty}
+        />
+      </header>
+      <RecipePhoto id={recipe.id} title={recipe.title} variant="hero" />
+      <div className="recipe-actions">
+        <AddToShoppingListButton recipe={recipe} servings={servings} />
+        <button ref={startButtonRef} type="button" className="button-primary" onClick={() => setCooking(true)}>
+          Start cooking
+        </button>
+      </div>
+      <div className="recipe-body">
+        <Markdown>{body}</Markdown>
+      </div>
+      {cooking && <CookMode title={recipe.title} markdown={markdown} onExit={() => setCooking(false)} />}
     </article>
   );
 }
