@@ -79,15 +79,62 @@ mixin (
     Map.get(photos, Text.compare, id);
   };
 
+  /// Index in `added` of the recipe with this id if `caller` may edit it,
+  /// otherwise a short readable reason. Shared by `canEditRecipe`,
+  /// `updateRecipe` and `deleteRecipe`.
+  func editableIndex(id : Text, caller : Principal) : Result.Result<Nat, Text> {
+    switch (List.findIndex<Types.Recipe>(added, func r = r.id == id)) {
+      case (?i) switch (RecipesLib.checkEditor(List.at(added, i), caller)) {
+        case (#ok) #ok(i);
+        case (#err(e)) #err(e);
+      };
+      // Placeholder and seed recipes exist but are never editable.
+      case null #err(if (findRecipe(id) == null) "Recipe not found" else RecipesLib.notAuthorMessage);
+    };
+  };
+
   /// True if the caller may edit the recipe: the caller is not anonymous and
   /// is the stored `author` of this user-added recipe. Placeholder and seed
   /// recipes, recipes added before authors were stored, and unknown ids
   /// return false.
   public shared query ({ caller }) func canEditRecipe(id : Text) : async Bool {
-    if (Principal.isAnonymous(caller)) return false;
-    switch (List.find<Types.Recipe>(added, func r = r.id == id)) {
-      case (?{ author = ?author }) author == caller;
-      case _ false;
+    Result.isOk(editableIndex(id, caller));
+  };
+
+  /// Replaces the recipe with this id by one built from `input`, validated like
+  /// `addRecipe`. Only the recipe's author may call it (see `canEditRecipe`).
+  /// The id, author and position in the list stay the same, even when the name
+  /// changes, so links keep working. A new `photo` replaces the stored one;
+  /// `photo = null` keeps it. Returns `#err` with a short message otherwise.
+  public shared ({ caller }) func updateRecipe(id : Text, input : Types.NewRecipe) : async Result.Result<(), Text> {
+    let i = switch (editableIndex(id, caller)) {
+      case (#ok(i)) i;
+      case (#err(e)) return #err(e);
+    };
+    switch (RecipesLib.update(List.at(added, i), input)) {
+      case (#err(e)) #err(e);
+      case (#ok(recipe)) {
+        List.put(added, i, recipe);
+        switch (input.photo) {
+          case (?photo) Map.add(photos, Text.compare, id, photo);
+          case null {};
+        };
+        #ok;
+      };
+    };
+  };
+
+  /// Deletes the recipe with this id and its photo. Only the recipe's author
+  /// may call it (see `canEditRecipe`); the other recipes keep their order.
+  /// Returns `#err` with a short message otherwise.
+  public shared ({ caller }) func deleteRecipe(id : Text) : async Result.Result<(), Text> {
+    switch (editableIndex(id, caller)) {
+      case (#err(e)) #err(e);
+      case (#ok(_)) {
+        List.retain<Types.Recipe>(added, func r = r.id != id);
+        Map.remove(photos, Text.compare, id);
+        #ok;
+      };
     };
   };
 };
