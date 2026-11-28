@@ -12,6 +12,7 @@ import { EditRecipePage } from "./components/EditRecipePage";
 import { RecipeActions } from "./components/RecipeActions";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
+import { RecipeOwnerActions } from "./components/RecipeOwnerActions";
 import { RecipePhoto } from "./components/RecipePhoto";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
@@ -293,6 +294,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
             )}
           </div>
         )}
+        <RecipeOwnerActions id={recipe.id} title={recipe.title} />
         <RecipeFacts
           prepMinutes={recipe.prepMinutes}
           cookMinutes={recipe.cookMinutes}
