@@ -3,12 +3,15 @@ import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { RecipeCard } from "./components/RecipeCard";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
+import { TagFilter } from "./components/TagFilter";
 import { pickRandomRecipeId } from "./randomRecipe";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
+import { distinctTags, filterByTag } from "./tagFilter";
 import "./App.css";
 
 /** How long to wait after the last keystroke before searching. */
@@ -23,6 +26,7 @@ function App() {
   const route = useRoute();
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   const refreshRecipes = useCallback(
     () =>
@@ -31,6 +35,10 @@ function App() {
         .then((list) => {
           setRecipes(list);
           setError(null);
+          // Drop a selected tag that no recipe has any more.
+          setSelectedTag((tag) =>
+            tag !== null && !list.some((r) => r.tags.includes(tag)) ? null : tag
+          );
         })
         .catch((e: unknown) => setError(String(e))),
     []
@@ -72,6 +80,7 @@ function App() {
   }, [searchText, recipes]);
 
   const activeId = route.name === "recipe" ? route.id : null;
+  const tags = recipes === null ? [] : distinctTags(recipes);
 
   // Picks from the full list, not the search results, and never the open recipe.
   const recipeIds = recipes?.map((r) => r.id) ?? [];
@@ -99,6 +108,11 @@ function App() {
     shown = null;
     status = <p className="muted">Searching…</p>;
   }
+  // The tag narrows both the full list and the search results.
+  if (shown !== null && shown.length > 0 && selectedTag !== null) {
+    shown = filterByTag(shown, selectedTag);
+    if (shown.length === 0) status = <p className="muted">No recipes match.</p>;
+  }
 
   return (
     <div className="layout">
@@ -124,6 +138,7 @@ function App() {
           Surprise me
         </button>
         <RecipeSearch value={query} onChange={changeQuery} />
+        <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
         <div role="status">{status}</div>
         <nav aria-label={searchText === "" ? "Recipes" : "Search results"}>
           <ul className="recipe-list">
@@ -141,18 +156,26 @@ function App() {
           </ul>
         </nav>
       </aside>
-      <main className="content">
+      <main className={route.name === "home" ? "content content-wide" : "content"}>
         {error && <p className="error">Could not reach the backend: {error}</p>}
-        <Page route={route} />
+        <Page route={route} recipes={recipes} failed={error !== null} />
       </main>
     </div>
   );
 }
 
-function Page({ route }: { route: Route }) {
+function Page({
+  route,
+  recipes,
+  failed,
+}: {
+  route: Route;
+  recipes: RecipeSummary[] | null;
+  failed: boolean;
+}) {
   switch (route.name) {
     case "home":
-      return <p className="muted">Select a recipe.</p>;
+      return <HomePage recipes={recipes} failed={failed} />;
     case "newRecipe":
       return <AddRecipeForm />;
     case "recipe":
@@ -160,6 +183,42 @@ function Page({ route }: { route: Route }) {
     case "notFound":
       return <NotFound message="Page not found." />;
   }
+}
+
+/**
+ * Every recipe as a card, in `listRecipes` order. Always the full list:
+ * the sidebar search does not filter it.
+ */
+function HomePage({ recipes, failed }: { recipes: RecipeSummary[] | null; failed: boolean }) {
+  let body: ReactNode;
+  if (recipes === null) {
+    // When loading failed, the error above the page already says so.
+    body = failed ? null : <p className="muted">Loading…</p>;
+  } else if (recipes.length === 0) {
+    body = (
+      <p className="muted">
+        No recipes yet. <a href={hrefFor({ name: "newRecipe" })}>Add the first one</a>
+      </p>
+    );
+  } else {
+    body = (
+      <ul className="recipe-grid">
+        {recipes.map((r) => (
+          <li key={r.id}>
+            <RecipeCard recipe={r} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <section className="home" aria-labelledby="home-heading">
+      <h2 id="home-heading" className="home-heading">
+        All recipes
+      </h2>
+      {body}
+    </section>
+  );
 }
 
 type RecipeState =
