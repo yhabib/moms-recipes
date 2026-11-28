@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { AuthButton } from "./components/AuthButton";
 import { RecipeCard } from "./components/RecipeCard";
 import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipeSearch } from "./components/RecipeSearch";
@@ -112,6 +113,7 @@ function App() {
         <h1 className="app-title">
           <a href={hrefFor({ name: "home" })}>Mom's Recipes</a>
         </h1>
+        <AuthButton />
         <a
           className={route.name === "newRecipe" ? "add-recipe-link active" : "add-recipe-link"}
           href={hrefFor({ name: "newRecipe" })}

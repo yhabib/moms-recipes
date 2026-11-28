@@ -5,3 +5,9 @@ canisters:
   - frontend
 
 
+networks:
+  - name: local
+    mode: managed
+    # Serve Internet Identity on the local network at http://id.ai.localhost:8000,
+    # so that sign-in works offline against locally deployed canisters.
+    ii: true

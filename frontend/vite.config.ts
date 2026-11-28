@@ -31,6 +31,15 @@ export default defineConfig(({ command, mode }) => {
   const rootKey: string = networkStatus.root_key;
   const proxyTarget: string = networkStatus.api_url;
 
+  // A local network serves Internet Identity (`ii: true` in icp.yaml) on the
+  // gateway's port at id.ai.localhost. The app runs on Vite's port here, so it
+  // can't derive that URL itself; pass it in.
+  const gateway = new URL(networkStatus.gateway_url ?? proxyTarget);
+  const isLocalNetwork = ["localhost", "127.0.0.1"].includes(gateway.hostname);
+  const localIdentityProvider = isLocalNetwork
+    ? `${gateway.protocol}//id.ai.localhost:${gateway.port}/authorize`
+    : "";
+
   // Backend must be deployed before starting dev server
   let canisterId: string;
   try {
@@ -64,7 +73,10 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     plugins,
-    server
+    server,
+    define: {
+      "import.meta.env.VITE_LOCAL_II_URL": JSON.stringify(localIdentityProvider),
+    },
   };
 
 });
