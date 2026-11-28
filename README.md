@@ -11,7 +11,7 @@ See [`backend/backend.did`](./backend/backend.did):
 
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title; description; servings; tags : vec text; hasPhoto : bool }
-getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty }
+getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty; author : opt principal }
 getRecipePhoto : (id : text) -> (opt Photo) query; // Photo = { contentType : text; data : blob }
 searchRecipes : (searchText : text) -> (vec RecipeSummary) query;
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
@@ -27,6 +27,8 @@ addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
 `prepMinutes`, `cookMinutes` and `difficulty` are optional too, for the same reason: each can be left out or be `null`, which means "not given". `prepMinutes` and `cookMinutes` are whole minutes from 0 to 1440 (24 hours); 0 is allowed, for example for a salad with no cooking, and a larger value makes `addRecipe` return `#err`. `difficulty` is one of `easy`, `medium` or `hard`. All three are returned by `getRecipe` but are not part of the Markdown. Recipes added before these fields existed have `null` for all three.
 
 `photo` is optional too: one image per recipe, which can be left out or be `null` (callers built before photos existed keep working). `contentType` must be `"image/jpeg"`, `"image/png"` or `"image/webp"`, and `data` (the file bytes) must not be empty and can be at most 1 MiB (1,048,576 bytes); otherwise `addRecipe` returns `#err` and stores nothing. The backend does not resize or inspect the image; the frontend is expected to scale photos down (to at most 1200 px) before upload. Photos are stored apart from the recipes: `listRecipes` and `searchRecipes` only report `hasPhoto`, and `getRecipePhoto` returns the photo itself, or `null` when the recipe has none or does not exist. Placeholder and seed recipes have no photo.
+
+`addRecipe` requires a signed-in caller: for the anonymous principal it returns `#err("Sign in to add a recipe")` before checking the input, and stores nothing. Otherwise the caller's principal is stored as the recipe's `author` and returned by `getRecipe`. Placeholder and seed recipes, and recipes added before authors were stored, have `author = null`.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
 
@@ -57,6 +59,8 @@ icp canister call backend addRecipe '(record { name = "Pancakes"; description = 
 icp canister call backend addRecipe '(record { name = "Toast"; description = ""; servings = 1; ingredients = vec { "1 slice bread" }; steps = vec { "Toast" }; photo = opt record { contentType = "image/jpeg"; data = blob "\ff\d8\ff" } })'
 icp canister call backend getRecipePhoto '("toast")'
 ```
+
+`addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`.
 
 `tags`, `prepMinutes`, `cookMinutes`, `difficulty` and `photo` can all be left out; the first `addRecipe` call above stores a recipe without a photo, and the second one sets `photo` but leaves the other optional fields out.
 
