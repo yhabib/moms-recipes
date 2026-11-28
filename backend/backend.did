@@ -5,7 +5,10 @@ type Result =
  };
 type RecipeSummary = 
  record {
+   description: text;
    id: text;
+   servings: nat;
+   tags: vec text;
    title: text;
  };
 type Recipe = 
