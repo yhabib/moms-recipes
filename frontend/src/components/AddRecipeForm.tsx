@@ -95,9 +95,13 @@ export function RecipeForm({
   const [name, setName] = useState(initial.name);
   const [description, setDescription] = useState(initial.description);
   const [servings, setServings] = useState(String(initial.servings));
-  const [prepMinutes, setPrepMinutes] = useState("");
-  const [cookMinutes, setCookMinutes] = useState("");
-  const [difficulty, setDifficulty] = useState("");
+  const [prepMinutes, setPrepMinutes] = useState(
+    initial.prepMinutes === undefined ? "" : String(initial.prepMinutes),
+  );
+  const [cookMinutes, setCookMinutes] = useState(
+    initial.cookMinutes === undefined ? "" : String(initial.cookMinutes),
+  );
+  const [difficulty, setDifficulty] = useState<string>(initial.difficulty ?? "");
   const [tags, setTags] = useState(initial.tags.join(", "));
   const [ingredients, setIngredients] = useState(initial.ingredients.join("\n"));
   const [steps, setSteps] = useState(initial.steps.join("\n"));

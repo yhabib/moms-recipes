@@ -1,4 +1,4 @@
-import type { Recipe } from "./backend/api/backend";
+import type { Difficulty, Recipe } from "./backend/api/backend";
 
 /** The values shown in the recipe form, e.g. when editing an existing recipe. */
 export interface RecipeFormValues {
@@ -8,6 +8,10 @@ export interface RecipeFormValues {
   tags: string[];
   ingredients: string[];
   steps: string[];
+  /** Optional; blank in the form when undefined. */
+  prepMinutes?: number;
+  cookMinutes?: number;
+  difficulty?: Difficulty;
 }
 
 const SERVINGS_LINE = /^\*\*Servings:\*\* \d+$/;
@@ -76,5 +80,8 @@ export function recipeToFormValues(recipe: Recipe): RecipeFormValues | null {
     tags: [...recipe.tags],
     ingredients,
     steps,
+    prepMinutes: recipe.prepMinutes === undefined ? undefined : Number(recipe.prepMinutes),
+    cookMinutes: recipe.cookMinutes === undefined ? undefined : Number(recipe.cookMinutes),
+    difficulty: recipe.difficulty,
   };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Recipe } from "./backend/api/backend";
+import { Difficulty, type Recipe } from "./backend/api/backend";
 import { recipeToFormValues } from "./recipeFormValues";
 
 function recipe(markdown: string, overrides: Partial<Recipe> = {}): Recipe {
@@ -57,6 +57,26 @@ describe("recipeToFormValues", () => {
     const values = recipeToFormValues(recipe(WITH_DESCRIPTION.replace(/\n/g, "\r\n")));
     expect(values).toEqual(recipeToFormValues(recipe(WITH_DESCRIPTION)));
     expect(values?.ingredients).toEqual(["500 g tomatoes", "1 onion", "2 cloves garlic"]);
+  });
+
+  it("copies prep time, cook time and difficulty when present", () => {
+    const values = recipeToFormValues(
+      recipe(WITH_DESCRIPTION, {
+        prepMinutes: 10n,
+        cookMinutes: 25n,
+        difficulty: Difficulty.easy,
+      }),
+    );
+    expect(values?.prepMinutes).toBe(10);
+    expect(values?.cookMinutes).toBe(25);
+    expect(values?.difficulty).toBe(Difficulty.easy);
+  });
+
+  it("leaves prep time, cook time and difficulty undefined when absent", () => {
+    const values = recipeToFormValues(recipe(WITH_DESCRIPTION));
+    expect(values?.prepMinutes).toBeUndefined();
+    expect(values?.cookMinutes).toBeUndefined();
+    expect(values?.difficulty).toBeUndefined();
   });
 
   it.each([
