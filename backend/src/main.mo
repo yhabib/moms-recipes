@@ -1,9 +1,11 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Map "mo:core/Map";
 import LegacyRecipes "lib/LegacyRecipes";
 import PlaceholderRecipes "lib/PlaceholderRecipes";
 import SeedRecipes "lib/SeedRecipes";
 import RecipesMixin "mixins/Recipes";
+import Types "types";
 
 actor {
   // Persistent variables: the project builds with --default-persistent-actors,
@@ -33,7 +35,14 @@ actor {
   // time, cook time or difficulty.
   let addedRecipesWithDetails = LegacyRecipes.withDetails(addedRecipesWithTags);
 
+  // Photos of recipes added through `addRecipe`, keyed by recipe id. Kept
+  // apart from the recipes so `Types.Recipe` (the element type of
+  // `addedRecipesWithDetails`) stays unchanged across upgrades. Recipes without
+  // a photo have no entry.
+  let recipePhotos = Map.empty<Text, Types.Photo>();
+
   // The placeholder and seed recipes are hard-coded in the code, not stored in
-  // actor state; they are served first, followed by the added recipes.
-  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithDetails);
+  // actor state; they are served first, followed by the added recipes. They
+  // have no photos.
+  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithDetails, recipePhotos);
 };

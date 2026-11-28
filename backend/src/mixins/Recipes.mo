@@ -1,14 +1,21 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Map "mo:core/Map";
 import Result "mo:core/Result";
+import Text "mo:core/Text";
 import RecipesLib "../lib/Recipes";
 import Search "../lib/Search";
 import Summary "../lib/Summary";
 import Types "../types";
 
 /// Public recipe API. main.mo injects the hard-coded `placeholders` and the
-/// persistent `added` list, which keeps user-added recipes in insertion order.
-mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
+/// persistent `added` list, which keeps user-added recipes in insertion order,
+/// and the persistent `photos` map from recipe id to that recipe's photo.
+mixin (
+  placeholders : [Types.Recipe],
+  added : List.List<Types.Recipe>,
+  photos : Map.Map<Text, Types.Photo>,
+) {
   func findRecipe(id : Text) : ?Types.Recipe {
     switch (Array.find<Types.Recipe>(placeholders, func r = r.id == id)) {
       case (?r) ?r;
@@ -22,6 +29,7 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
     description = Summary.description(r.markdown);
     servings = r.servings;
     tags = r.tags;
+    hasPhoto = Map.containsKey(photos, Text.compare, r.id);
   };
 
   public query func listRecipes() : async [Types.RecipeSummary] {
@@ -53,8 +61,17 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
       case (#err(e)) #err(e);
       case (#ok(recipe)) {
         List.add(added, recipe);
+        switch (input.photo) {
+          case (?photo) Map.add(photos, Text.compare, recipe.id, photo);
+          case null {};
+        };
         #ok(recipe.id);
       };
     };
+  };
+
+  /// The photo of the recipe with this id, or null if it has none or does not exist.
+  public query func getRecipePhoto(id : Text) : async ?Types.Photo {
+    Map.get(photos, Text.compare, id);
   };
 };
