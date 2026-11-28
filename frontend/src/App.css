@@ -306,6 +306,45 @@
   font-variant-numeric: tabular-nums;
 }
 
+.add-to-shopping-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.add-to-shopping-list-button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-to-shopping-list-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.add-to-shopping-list-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.add-to-shopping-list-button:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.add-to-shopping-list-note,
+.add-to-shopping-list-status {
+  font-size: 0.9rem;
+}
+
 .muted {
   color: var(--muted);
 }
@@ -412,7 +451,8 @@
   }
 }
 
-.add-recipe-link {
+.add-recipe-link,
+.shopping-list-link {
   display: block;
   margin-bottom: 16px;
   border: 1px solid var(--accent);
@@ -425,9 +465,39 @@
 }
 
 .add-recipe-link:hover,
-.add-recipe-link.active {
+.add-recipe-link.active,
+.shopping-list-link:hover,
+.shopping-list-link.active {
   background: var(--accent);
   color: var(--accent-fg);
+}
+
+.surprise-button {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  /* Sits 8px below the add recipe link, which has a 16px bottom margin. */
+  margin: -8px 0 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.surprise-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.surprise-button:disabled {
+  border-color: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
 }
 
 .recipe-form h2 {

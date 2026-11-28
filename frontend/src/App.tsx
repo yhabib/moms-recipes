@@ -4,6 +4,7 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddedByYou } from "./components/AddedByYou";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { AddToShoppingListButton } from "./components/AddToShoppingListButton";
 import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
@@ -12,7 +13,9 @@ import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipePhoto } from "./components/RecipePhoto";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
+import { ShoppingListPage } from "./components/ShoppingList";
 import { TagFilter } from "./components/TagFilter";
+import { pickRandomRecipeId } from "./randomRecipe";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
@@ -87,6 +90,14 @@ function App() {
   const activeId = route.name === "recipe" ? route.id : null;
   const tags = recipes === null ? [] : distinctTags(recipes);
 
+  // Picks from the full list, not the search results, and never the open recipe.
+  const recipeIds = recipes?.map((r) => r.id) ?? [];
+  const canSurprise = recipeIds.some((id) => id !== activeId);
+  const openRandomRecipe = () => {
+    const id = pickRandomRecipeId(recipeIds, activeId);
+    if (id !== null) window.location.hash = hrefFor({ name: "recipe", id });
+  };
+
   let shown: RecipeSummary[] | null;
   let status: ReactNode = null;
   if (searchText === "") {
@@ -121,6 +132,23 @@ function App() {
           aria-current={route.name === "newRecipe" ? "page" : undefined}
         >
           + Add a recipe
+        </a>
+        <button
+          type="button"
+          className="surprise-button"
+          onClick={openRandomRecipe}
+          disabled={!canSurprise}
+          aria-label="Open a random recipe"
+          title="Open a random recipe"
+        >
+          Surprise me
+        </button>
+        <a
+          className={route.name === "shoppingList" ? "shopping-list-link active" : "shopping-list-link"}
+          href={hrefFor({ name: "shoppingList" })}
+          aria-current={route.name === "shoppingList" ? "page" : undefined}
+        >
+          Shopping list
         </a>
         <RecipeSearch value={query} onChange={changeQuery} />
         <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
@@ -165,6 +193,8 @@ function Page({
       return <AddRecipeForm />;
     case "recipe":
       return <RecipePage id={route.id} />;
+    case "shoppingList":
+      return <ShoppingListPage />;
     case "notFound":
       return <NotFound message="Page not found." />;
   }
@@ -252,6 +282,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
         difficulty={recipe.difficulty}
       />
       {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
+      <AddToShoppingListButton recipe={recipe} servings={servings} />
       <button ref={startButtonRef} type="button" className="button-primary" onClick={() => setCooking(true)}>
         Start cooking
       </button>
