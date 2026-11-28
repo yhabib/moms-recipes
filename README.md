@@ -64,6 +64,12 @@ icp canister call backend getRecipePhoto '("toast")'
 
 `tags`, `prepMinutes`, `cookMinutes`, `difficulty` and `photo` can all be left out; the first `addRecipe` call above stores a recipe without a photo, and the second one sets `photo` but leaves the other optional fields out.
 
+### Sign in
+
+The app signs users in with [Internet Identity](https://internetcomputer.org/internet-identity). Anyone can browse and search recipes, but only signed-in users can add one: signed out, the "Add a recipe" page shows a "Sign in" button instead of the form, and the backend rejects `addRecipe` from the anonymous principal.
+
+On mainnet, sign-in uses Internet Identity at `https://id.ai`. On the local network nothing goes online: `icp.yaml` sets `ii: true`, so `icp network start` also runs an Internet Identity canister, served at `http://id.ai.localhost:8000`. The frontend picks it automatically when it is opened on `localhost` or a `*.localhost` address (`frontend/src/auth.ts`); under `npm run dev`, `frontend/vite.config.ts` passes the local II URL in, since the app then runs on Vite's port. Create a new identity in the local II popup the first time; it only exists on your local network.
+
 ### Frontend dev server
 
 With the backend deployed locally:
