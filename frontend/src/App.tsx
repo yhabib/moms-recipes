@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { RecipeActions } from "./components/RecipeActions";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
@@ -179,6 +180,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
   const [servings, setServings] = useState(baseServings);
   return (
     <article className="recipe">
+      <RecipeActions id={recipe.id} />
       <RecipeTags tags={recipe.tags} />
       {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
       <Markdown>
