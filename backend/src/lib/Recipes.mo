@@ -15,6 +15,8 @@ module {
   public let maxLines = 100;
   public let maxTags = 10;
   public let maxTagLength = 30;
+  /// Upper limit for `prepMinutes` and `cookMinutes` (24 hours).
+  public let maxMinutes = 1440;
 
   /// A `NewRecipe` after trimming and validation.
   public type ValidRecipe = {
@@ -24,6 +26,9 @@ module {
     ingredients : [Text];
     steps : [Text];
     tags : [Text];
+    prepMinutes : ?Nat;
+    cookMinutes : ?Nat;
+    difficulty : ?Types.Difficulty;
   };
 
   func trim(t : Text) : Text = Text.trim(t, #predicate(Char.isWhitespace));
@@ -58,6 +63,17 @@ module {
     #ok(List.toArray(kept));
   };
 
+  /// Checks that `minutes`, when given, is at most `maxMinutes`.
+  func checkMinutes(minutes : ?Nat, what : Text) : Result.Result<(), Text> {
+    switch (minutes) {
+      case (?m) if (m > maxMinutes) {
+        return #err(what # " can be at most " # Nat.toText(maxMinutes) # " minutes");
+      };
+      case null {};
+    };
+    #ok;
+  };
+
   /// Trims the input and checks it. Returns a short readable message on failure.
   public func validate(input : Types.NewRecipe) : Result.Result<ValidRecipe, Text> {
     let name = trim(input.name);
@@ -81,7 +97,25 @@ module {
       case (#ok(l)) l;
       case (#err(e)) return #err(e);
     };
-    #ok({ name; description; servings = input.servings; ingredients; steps; tags });
+    switch (checkMinutes(input.prepMinutes, "Prep time")) {
+      case (#err(e)) return #err(e);
+      case (#ok) {};
+    };
+    switch (checkMinutes(input.cookMinutes, "Cook time")) {
+      case (#err(e)) return #err(e);
+      case (#ok) {};
+    };
+    #ok({
+      name;
+      description;
+      servings = input.servings;
+      ingredients;
+      steps;
+      tags;
+      prepMinutes = input.prepMinutes;
+      cookMinutes = input.cookMinutes;
+      difficulty = input.difficulty;
+    });
   };
 
   /// URL-safe slug: lowercase ASCII letters and digits; every other run of
@@ -140,6 +174,9 @@ module {
         markdown = toMarkdown(r);
         servings = r.servings;
         tags = r.tags;
+        prepMinutes = r.prepMinutes;
+        cookMinutes = r.cookMinutes;
+        difficulty = r.difficulty;
       });
     };
   };
