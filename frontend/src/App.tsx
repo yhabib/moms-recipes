@@ -9,6 +9,7 @@ import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
 import { EditRecipePage } from "./components/EditRecipePage";
+import { FavouriteButton } from "./components/FavouriteButton";
 import { RecipeActions } from "./components/RecipeActions";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
@@ -286,14 +287,13 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
       <header className="recipe-header">
         <h1 className="recipe-title">{recipe.title}</h1>
         <AddedByYou author={recipe.author ?? null} />
-        {(recipe.tags.length > 0 || baseServings > 0) && (
-          <div className="recipe-meta">
-            <RecipeTags tags={recipe.tags} />
-            {baseServings > 0 && (
-              <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />
-            )}
-          </div>
-        )}
+        <div className="recipe-meta">
+          <FavouriteButton recipeId={recipe.id} />
+          <RecipeTags tags={recipe.tags} />
+          {baseServings > 0 && (
+            <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />
+          )}
+        </div>
         <RecipeOwnerActions id={recipe.id} title={recipe.title} />
         <RecipeFacts
           prepMinutes={recipe.prepMinutes}
