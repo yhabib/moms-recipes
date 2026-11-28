@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { backend } from "../backend";
-import { Difficulty } from "../backend/api/backend";
+import { Difficulty, type NewRecipe } from "../backend/api/backend";
+import type { RecipeFormValues } from "../recipeFormValues";
 import { hrefFor, navigate, refreshRecipes } from "../router";
 
 type Field =
@@ -58,17 +59,52 @@ function toTags(text: string): string[] {
   return tags;
 }
 
-/** Shows the "Add a recipe" form and saves the recipe in the backend. */
-export function AddRecipeForm() {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [servings, setServings] = useState("4");
-  const [prepMinutes, setPrepMinutes] = useState("");
-  const [cookMinutes, setCookMinutes] = useState("");
-  const [difficulty, setDifficulty] = useState("");
-  const [tags, setTags] = useState("");
-  const [ingredients, setIngredients] = useState("");
-  const [steps, setSteps] = useState("");
+export type { RecipeFormValues };
+
+const EMPTY_VALUES: RecipeFormValues = {
+  name: "",
+  description: "",
+  servings: 4,
+  tags: [],
+  ingredients: [],
+  steps: [],
+};
+
+export interface RecipeFormProps {
+  /** Values to prefill; textareas show one item per line, tags are joined with ", ". */
+  initial?: RecipeFormValues;
+  heading: string;
+  submitLabel: string;
+  /** Where "Cancel" goes. Defaults to the home page. */
+  cancelHref?: string;
+  /**
+   * Saves the validated recipe. Resolves to an error message to show, or null
+   * on success (the caller then navigates away).
+   */
+  onSave: (input: NewRecipe) => Promise<string | null>;
+}
+
+/** A recipe form that validates its fields and hands the recipe to `onSave`. */
+export function RecipeForm({
+  initial = EMPTY_VALUES,
+  heading,
+  submitLabel,
+  cancelHref = hrefFor({ name: "home" }),
+  onSave,
+}: RecipeFormProps) {
+  const [name, setName] = useState(initial.name);
+  const [description, setDescription] = useState(initial.description);
+  const [servings, setServings] = useState(String(initial.servings));
+  const [prepMinutes, setPrepMinutes] = useState(
+    initial.prepMinutes === undefined ? "" : String(initial.prepMinutes),
+  );
+  const [cookMinutes, setCookMinutes] = useState(
+    initial.cookMinutes === undefined ? "" : String(initial.cookMinutes),
+  );
+  const [difficulty, setDifficulty] = useState<string>(initial.difficulty ?? "");
+  const [tags, setTags] = useState(initial.tags.join(", "));
+  const [ingredients, setIngredients] = useState(initial.ingredients.join("\n"));
+  const [steps, setSteps] = useState(initial.steps.join("\n"));
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -111,8 +147,9 @@ export function AddRecipeForm() {
     if (Object.keys(found).length > 0 || prep === null || cook === null) return;
 
     setSaving(true);
+    let error: string | null;
     try {
-      const result = await backend.addRecipe({
+      error = await onSave({
         name: name.trim(),
         description: description.trim(),
         servings: BigInt(servingsText),
@@ -124,21 +161,17 @@ export function AddRecipeForm() {
         cookMinutes: cook,
         difficulty: DIFFICULTIES[difficulty],
       });
-      if (result.__kind__ === "ok") {
-        refreshRecipes();
-        navigate(hrefFor({ name: "recipe", id: result.ok }));
-        return;
-      }
-      setSubmitError(result.err);
     } catch (e: unknown) {
-      setSubmitError(e instanceof Error ? e.message : String(e));
+      error = e instanceof Error ? e.message : String(e);
     }
+    if (error === null) return;
+    setSubmitError(error);
     setSaving(false);
   }
 
   return (
     <form className="recipe-form" onSubmit={handleSubmit} noValidate>
-      <h2>Add a recipe</h2>
+      <h2>{heading}</h2>
 
       <div className="field">
         <label htmlFor="recipe-name">Name</label>
@@ -374,10 +407,23 @@ export function AddRecipeForm() {
 
       <div className="form-actions">
         <button type="submit" className="button-primary" disabled={saving}>
-          {saving ? "Saving…" : "Save recipe"}
+          {saving ? "Saving…" : submitLabel}
         </button>
-        <a href={hrefFor({ name: "home" })}>Cancel</a>
+        <a href={cancelHref}>Cancel</a>
       </div>
     </form>
   );
+}
+
+/** Shows the "Add a recipe" form and saves the recipe in the backend. */
+export function AddRecipeForm() {
+  async function addRecipe(input: NewRecipe): Promise<string | null> {
+    const result = await backend.addRecipe(input);
+    if (result.__kind__ !== "ok") return result.err;
+    refreshRecipes();
+    navigate(hrefFor({ name: "recipe", id: result.ok }));
+    return null;
+  }
+
+  return <RecipeForm heading="Add a recipe" submitLabel="Save recipe" onSave={addRecipe} />;
 }
