@@ -11,11 +11,13 @@ import Types "../types";
 
 /// Public recipe API. main.mo injects the hard-coded `placeholders` and the
 /// persistent `added` list, which keeps user-added recipes in insertion order,
-/// and the persistent `authors` map from a user-added recipe's id to the
-/// principal that added it.
+/// the persistent `photos` map from recipe id to that recipe's photo, and the
+/// persistent `authors` map from a user-added recipe's id to the principal
+/// that added it.
 mixin (
   placeholders : [Types.Recipe],
   added : List.List<Types.Recipe>,
+  photos : Map.Map<Text, Types.Photo>,
   authors : Map.Map<Text, Principal>,
 ) {
   func findRecipe(id : Text) : ?Types.Recipe {
@@ -31,6 +33,7 @@ mixin (
     description = Summary.description(r.markdown);
     servings = r.servings;
     tags = r.tags;
+    hasPhoto = Map.containsKey(photos, Text.compare, r.id);
   };
 
   public query func listRecipes() : async [Types.RecipeSummary] {
@@ -63,12 +66,21 @@ mixin (
       case (#err(e)) #err(e);
       case (#ok(recipe)) {
         List.add(added, recipe);
+        switch (input.photo) {
+          case (?photo) Map.add(photos, Text.compare, recipe.id, photo);
+          case null {};
+        };
         if (not Principal.isAnonymous(caller)) {
           Map.add(authors, Text.compare, recipe.id, caller);
         };
         #ok(recipe.id);
       };
     };
+  };
+
+  /// The photo of the recipe with this id, or null if it has none or does not exist.
+  public query func getRecipePhoto(id : Text) : async ?Types.Photo {
+    Map.get(photos, Text.compare, id);
   };
 
   /// True if the caller may edit the recipe: the caller is not anonymous and
