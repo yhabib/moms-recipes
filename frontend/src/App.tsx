@@ -4,7 +4,7 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { AuthButton } from "./components/AuthButton";
-import { RecipeCard } from "./components/RecipeCard";
+import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipePhoto } from "./components/RecipePhoto";
 import { RecipeSearch } from "./components/RecipeSearch";
@@ -171,7 +171,7 @@ function Page({
 }
 
 /**
- * Every recipe as a card, in `listRecipes` order. Always the full list:
+ * Every recipe as a card with its photo, in `listRecipes` order. Always the full list:
  * the sidebar search does not filter it.
  */
 function HomePage({ recipes, failed }: { recipes: RecipeSummary[] | null; failed: boolean }) {
@@ -179,22 +179,8 @@ function HomePage({ recipes, failed }: { recipes: RecipeSummary[] | null; failed
   if (recipes === null) {
     // When loading failed, the error above the page already says so.
     body = failed ? null : <p className="muted">Loading…</p>;
-  } else if (recipes.length === 0) {
-    body = (
-      <p className="muted">
-        No recipes yet. <a href={hrefFor({ name: "newRecipe" })}>Add the first one</a>
-      </p>
-    );
   } else {
-    body = (
-      <ul className="recipe-grid">
-        {recipes.map((r) => (
-          <li key={r.id}>
-            <RecipeCard recipe={r} />
-          </li>
-        ))}
-      </ul>
-    );
+    body = <RecipeCards recipes={recipes} />;
   }
   return (
     <section className="home" aria-labelledby="home-heading">
