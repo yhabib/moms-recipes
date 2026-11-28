@@ -4,6 +4,7 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddedByYou } from "./components/AddedByYou";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { AddToShoppingListButton } from "./components/AddToShoppingListButton";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
 import { RecipeCards } from "./components/RecipeCards";
@@ -254,6 +255,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
         difficulty={recipe.difficulty}
       />
       {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
+      <AddToShoppingListButton recipe={recipe} servings={servings} />
       <button ref={startButtonRef} type="button" className="button-primary" onClick={() => setCooking(true)}>
         Start cooking
       </button>
