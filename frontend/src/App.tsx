@@ -8,6 +8,7 @@ import { AddToShoppingListButton } from "./components/AddToShoppingListButton";
 import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
+import { RecipeActions } from "./components/RecipeActions";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipePhoto } from "./components/RecipePhoto";
@@ -276,6 +277,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
 
   return (
     <article className="recipe">
+      <RecipeActions id={recipe.id} />
       <header className="recipe-header">
         <h1 className="recipe-title">{recipe.title}</h1>
         <AddedByYou author={recipe.author ?? null} />
