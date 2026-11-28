@@ -377,6 +377,32 @@
   border-color: #c0392b;
 }
 
+.recipe-form .photo-preview {
+  display: block;
+  max-width: min(240px, 100%);
+  height: auto;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.recipe-form .button-remove-photo {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.recipe-form .button-remove-photo:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .field-hint {
   margin: 0;
   color: var(--muted);

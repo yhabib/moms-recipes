@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { backend } from "../backend";
-import { Difficulty, type NewRecipe } from "../backend/api/backend";
+import { Difficulty, type NewRecipe, type Photo } from "../backend/api/backend";
 import type { RecipeFormValues } from "../recipeFormValues";
+import { resizePhoto } from "../resizePhoto";
 import { hrefFor, navigate, refreshRecipes } from "../router";
 
 type Field =
@@ -11,6 +12,7 @@ type Field =
   | "cookMinutes"
   | "difficulty"
   | "tags"
+  | "photo"
   | "ingredients"
   | "steps";
 type FieldErrors = Partial<Record<Field, string>>;
@@ -70,11 +72,19 @@ const EMPTY_VALUES: RecipeFormValues = {
   steps: [],
 };
 
+/** A resized photo ready to send, with an object URL for its preview. */
+interface ChosenPhoto {
+  photo: Photo;
+  previewUrl: string;
+}
+
 export interface RecipeFormProps {
   /** Values to prefill; textareas show one item per line, tags are joined with ", ". */
   initial?: RecipeFormValues;
   heading: string;
   submitLabel: string;
+  /** Shows the optional "Photo" field and sends the chosen photo. */
+  withPhoto?: boolean;
   /** Where "Cancel" goes. Defaults to the home page. */
   cancelHref?: string;
   /**
@@ -89,6 +99,7 @@ export function RecipeForm({
   initial = EMPTY_VALUES,
   heading,
   submitLabel,
+  withPhoto = false,
   cancelHref = hrefFor({ name: "home" }),
   onSave,
 }: RecipeFormProps) {
@@ -108,13 +119,68 @@ export function RecipeForm({
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [chosenPhoto, setChosenPhoto] = useState<ChosenPhoto | null>(null);
+  const [preparingPhoto, setPreparingPhoto] = useState(false);
+  const photoInput = useRef<HTMLInputElement>(null);
+  // Counts photo choices and removals, so a resize that finishes after the
+  // user picked another file or removed the photo is ignored.
+  const photoRequest = useRef(0);
+
+  // Revoke a preview URL once its photo is replaced, removed or unmounted.
+  useEffect(() => {
+    if (!chosenPhoto) return;
+    return () => URL.revokeObjectURL(chosenPhoto.previewUrl);
+  }, [chosenPhoto]);
+
+  // Ignore a resize still running when the form goes away.
+  useEffect(() => {
+    const requests = photoRequest;
+    return () => {
+      requests.current += 1;
+    };
+  }, []);
 
   const clearError = (field: Field) =>
     setErrors((current) => ({ ...current, [field]: undefined }));
 
+  async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    const request = ++photoRequest.current;
+    setChosenPhoto(null);
+    clearError("photo");
+    if (!file) {
+      setPreparingPhoto(false);
+      return;
+    }
+    setPreparingPhoto(true);
+    try {
+      const photo = await resizePhoto(file);
+      if (request !== photoRequest.current) return;
+      const previewUrl = URL.createObjectURL(
+        new Blob([photo.data as Uint8Array<ArrayBuffer>], { type: photo.contentType }),
+      );
+      setChosenPhoto({ photo, previewUrl });
+    } catch (e: unknown) {
+      if (request !== photoRequest.current) return;
+      const message = e instanceof Error ? e.message : String(e);
+      setErrors((current) => ({ ...current, photo: message }));
+      if (photoInput.current) photoInput.current.value = "";
+    } finally {
+      if (request === photoRequest.current) setPreparingPhoto(false);
+    }
+  }
+
+  function removePhoto() {
+    photoRequest.current += 1;
+    setChosenPhoto(null);
+    setPreparingPhoto(false);
+    clearError("photo");
+    if (photoInput.current) photoInput.current.value = "";
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (saving) return;
+    if (saving || preparingPhoto) return;
 
     const ingredientLines = toLines(ingredients);
     const stepLines = toLines(steps);
@@ -160,6 +226,7 @@ export function RecipeForm({
         prepMinutes: prep,
         cookMinutes: cook,
         difficulty: DIFFICULTIES[difficulty],
+        photo: chosenPhoto?.photo,
       });
     } catch (e: unknown) {
       error = e instanceof Error ? e.message : String(e);
@@ -347,6 +414,48 @@ export function RecipeForm({
         )}
       </div>
 
+      {withPhoto && (
+        <div className="field">
+          <label htmlFor="recipe-photo">Photo</label>
+          <p className="field-hint" id="recipe-photo-hint">
+            Optional. One photo; it is resized to at most 1200 px.
+          </p>
+          <input
+            id="recipe-photo"
+            ref={photoInput}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            aria-invalid={errors.photo ? true : undefined}
+            aria-describedby={
+              errors.photo ? "recipe-photo-hint recipe-photo-error" : "recipe-photo-hint"
+            }
+          />
+          {preparingPhoto && (
+            <p className="field-hint" role="status">
+              Preparing photo…
+            </p>
+          )}
+          {chosenPhoto && (
+            <img
+              className="photo-preview"
+              src={chosenPhoto.previewUrl}
+              alt="Preview of the chosen photo"
+            />
+          )}
+          {(chosenPhoto || preparingPhoto) && (
+            <button type="button" className="button-remove-photo" onClick={removePhoto}>
+              Remove photo
+            </button>
+          )}
+          {errors.photo && (
+            <p id="recipe-photo-error" className="field-error">
+              {errors.photo}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="field">
         <label htmlFor="recipe-ingredients">Ingredients</label>
         <p className="field-hint" id="recipe-ingredients-hint">
@@ -406,7 +515,7 @@ export function RecipeForm({
       )}
 
       <div className="form-actions">
-        <button type="submit" className="button-primary" disabled={saving}>
+        <button type="submit" className="button-primary" disabled={saving || preparingPhoto}>
           {saving ? "Saving…" : submitLabel}
         </button>
         <a href={cancelHref}>Cancel</a>
@@ -425,5 +534,5 @@ export function AddRecipeForm() {
     return null;
   }
 
-  return <RecipeForm heading="Add a recipe" submitLabel="Save recipe" onSave={addRecipe} />;
+  return <RecipeForm heading="Add a recipe" submitLabel="Save recipe" withPhoto onSave={addRecipe} />;
 }
