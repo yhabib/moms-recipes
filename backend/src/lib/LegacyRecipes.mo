@@ -4,7 +4,8 @@ import Text "mo:core/Text";
 import Types "../types";
 
 /// Recipes stored by older versions: before task #15 the record had no
-/// `servings`, before task #24 it had no `tags`.
+/// `servings`, before task #24 it had no `tags`, before task #47 it had no
+/// `prepMinutes`, `cookMinutes` or `difficulty`.
 module {
   /// The stored record type of `addedRecipes` before task #15. Do not change
   /// it: the persistent variable keeps this type so upgrades from those
@@ -15,6 +16,12 @@ module {
   /// (no `tags`). Do not change it: the persistent variable keeps this type so
   /// upgrades from those versions stay compatible.
   public type RecipeV2 = { id : Text; title : Text; markdown : Text; servings : Nat };
+
+  /// The stored record type of `addedRecipesWithTags` before task #47 (no
+  /// `prepMinutes`, `cookMinutes` or `difficulty`). Do not change it: the
+  /// persistent variable keeps this type so upgrades from those versions stay
+  /// compatible.
+  public type RecipeV3 = { id : Text; title : Text; markdown : Text; servings : Nat; tags : [Text] };
 
   /// Used only if a recipe has no `**Servings:** N` line. Every V1 recipe was
   /// built by `Recipes.toMarkdown`, which always writes that line.
@@ -41,9 +48,19 @@ module {
     List.map<RecipeV1, RecipeV2>(old, func r = { r with servings = parseServings(r.markdown) });
   };
 
-  /// Copies V2 recipes to the current type with no tags: recipes added before
-  /// task #24 had none, and recipes can't be edited.
-  public func withTags(old : List.List<RecipeV2>) : List.List<Types.Recipe> {
-    List.map<RecipeV2, Types.Recipe>(old, func r = { r with tags = [] });
+  /// Copies V2 recipes to V3 with no tags: recipes added before task #24 had
+  /// none, and recipes can't be edited.
+  public func withTags(old : List.List<RecipeV2>) : List.List<RecipeV3> {
+    List.map<RecipeV2, RecipeV3>(old, func r = { r with tags = [] });
+  };
+
+  /// Copies V3 recipes to the current type with no prep time, cook time or
+  /// difficulty: recipes added before task #47 had none, and recipes can't be
+  /// edited.
+  public func withDetails(old : List.List<RecipeV3>) : List.List<Types.Recipe> {
+    List.map<RecipeV3, Types.Recipe>(
+      old,
+      func r = { r with prepMinutes = null; cookMinutes = null; difficulty = null },
+    );
   };
 };
