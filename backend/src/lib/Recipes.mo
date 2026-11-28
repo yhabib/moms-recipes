@@ -130,8 +130,8 @@ module {
     md;
   };
 
-  /// Validates `input` and builds the stored recipe with a free id.
-  public func create(input : Types.NewRecipe, isTaken : Text -> Bool) : Result.Result<Types.Recipe, Text> {
+  /// Validates `input` and builds the stored recipe with a free id, added by `author`.
+  public func create(input : Types.NewRecipe, author : Principal, isTaken : Text -> Bool) : Result.Result<Types.Recipe, Text> {
     switch (validate(input)) {
       case (#err(e)) #err(e);
       case (#ok(r)) #ok({
@@ -140,6 +140,7 @@ module {
         markdown = toMarkdown(r);
         servings = r.servings;
         tags = r.tags;
+        author = ?author;
       });
     };
   };

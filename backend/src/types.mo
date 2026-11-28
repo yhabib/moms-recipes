@@ -8,6 +8,9 @@ module {
     servings : Nat;
     /// Short lowercase labels such as "soup" or "vegetarian"; may be empty.
     tags : [Text];
+    /// The principal that added the recipe; `null` for placeholder recipes and
+    /// for recipes added before authors were stored.
+    author : ?Principal;
   };
 
   /// Lightweight entry for listing recipes without shipping every body.

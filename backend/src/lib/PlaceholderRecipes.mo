@@ -8,6 +8,7 @@ module {
       title = "Mom's Lentil Soup";
       servings = 4;
       tags = ["soup", "vegetarian"];
+      author = null;
       markdown = "# Mom's Lentil Soup
 
 A cozy, one-pot soup for cold evenings.
@@ -38,6 +39,7 @@ A cozy, one-pot soup for cold evenings.
       title = "Sunday Apple Cake";
       servings = 8;
       tags = ["dessert", "baking"];
+      author = null;
       markdown = "# Sunday Apple Cake
 
 ## Ingredients
@@ -64,6 +66,7 @@ A cozy, one-pot soup for cold evenings.
       title = "Tomato Rice";
       servings = 4;
       tags = ["side dish", "vegetarian"];
+      author = null;
       markdown = "# Tomato Rice
 
 ## Ingredients

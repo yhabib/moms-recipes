@@ -13,6 +13,7 @@ type RecipeSummary =
  };
 type Recipe = 
  record {
+   author: opt principal;
    id: text;
    markdown: text;
    servings: nat;
@@ -30,6 +31,8 @@ type NewRecipe =
  };
 service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
+  /// The caller must be signed in (not the anonymous principal) and is stored as
+  /// the recipe's `author`.
   addRecipe: (input: NewRecipe) -> (Result);
   getRecipe: (id: text) -> (opt Recipe) query;
   listRecipes: () -> (vec RecipeSummary) query;

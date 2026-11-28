@@ -9,6 +9,7 @@ module {
       title = "Fluffy Pancakes";
       servings = 4;
       tags = ["breakfast", "vegetarian", "quick"];
+      author = null;
       markdown = "# Fluffy Pancakes
 
 Thick, soft pancakes for a weekend breakfast. Makes about 12.
@@ -41,6 +42,7 @@ Thick, soft pancakes for a weekend breakfast. Makes about 12.
       title = "Classic Minestrone";
       servings = 6;
       tags = ["soup", "vegetarian"];
+      author = null;
       markdown = "# Classic Minestrone
 
 A thick Italian vegetable soup with beans and small pasta.
@@ -76,6 +78,7 @@ A thick Italian vegetable soup with beans and small pasta.
       title = "Greek Village Salad";
       servings = 4;
       tags = ["salad", "vegetarian", "quick"];
+      author = null;
       markdown = "# Greek Village Salad
 
 Horiatiki: a chunky salad with no lettuce, topped with a slab of feta.
@@ -108,6 +111,7 @@ Horiatiki: a chunky salad with no lettuce, topped with a slab of feta.
       title = "Spaghetti Carbonara";
       servings = 4;
       tags = ["pasta", "main", "quick"];
+      author = null;
       markdown = "# Spaghetti Carbonara
 
 The Roman classic: eggs, cheese, cured pork and black pepper, no cream.
@@ -140,6 +144,7 @@ The Roman classic: eggs, cheese, cured pork and black pepper, no cream.
       title = "Weeknight Chicken Curry";
       servings = 4;
       tags = ["chicken", "main"];
+      author = null;
       markdown = "# Weeknight Chicken Curry
 
 A mild, creamy tomato curry. Serve with rice or naan.
@@ -175,6 +180,7 @@ A mild, creamy tomato curry. Serve with rice or naan.
       title = "Hearty Beef Stew";
       servings = 6;
       tags = ["beef", "main"];
+      author = null;
       markdown = "# Hearty Beef Stew
 
 Slow-cooked beef with red wine, carrots and potatoes.
@@ -212,6 +218,7 @@ Slow-cooked beef with red wine, carrots and potatoes.
       title = "Lemon Garlic Baked Salmon";
       servings = 4;
       tags = ["fish", "main", "quick"];
+      author = null;
       markdown = "# Lemon Garlic Baked Salmon
 
 ## Ingredients
@@ -240,6 +247,7 @@ Slow-cooked beef with red wine, carrots and potatoes.
       title = "Provençal Ratatouille";
       servings = 6;
       tags = ["vegan", "vegetarian", "main"];
+      author = null;
       markdown = "# Provençal Ratatouille
 
 A summer vegetable stew from the south of France.
@@ -275,6 +283,7 @@ A summer vegetable stew from the south of France.
       title = "Chunky Guacamole";
       servings = 4;
       tags = ["side dish", "vegan", "quick"];
+      author = null;
       markdown = "# Chunky Guacamole
 
 ## Ingredients
@@ -302,6 +311,7 @@ A summer vegetable stew from the south of France.
       title = "Classic Banana Bread";
       servings = 10;
       tags = ["baking", "dessert", "breakfast"];
+      author = null;
       markdown = "# Classic Banana Bread
 
 The best use for very ripe, spotty bananas. Makes one loaf.
@@ -334,6 +344,7 @@ The best use for very ripe, spotty bananas. Makes one loaf.
       title = "Chewy Chocolate Chip Cookies";
       servings = 24;
       tags = ["dessert", "baking"];
+      author = null;
       markdown = "# Chewy Chocolate Chip Cookies
 
 Makes about 24 cookies.
@@ -368,6 +379,7 @@ Makes about 24 cookies.
       title = "Creamy Rice Pudding";
       servings = 4;
       tags = ["dessert", "vegetarian"];
+      author = null;
       markdown = "# Creamy Rice Pudding
 
 A slow-stirred stovetop pudding, good warm or cold.
