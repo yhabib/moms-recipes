@@ -10,6 +10,7 @@ import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
 import { EditRecipePage } from "./components/EditRecipePage";
 import { FavouriteButton } from "./components/FavouriteButton";
+import { FavouritesList } from "./components/FavouritesList";
 import { RecipeActions } from "./components/RecipeActions";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
@@ -156,6 +157,7 @@ function App() {
         >
           Shopping list
         </a>
+        <FavouritesList activeId={activeId} />
         <RecipeSearch value={query} onChange={changeQuery} />
         <TagFilter tags={tags} selected={selectedTag} onChange={setSelectedTag} />
         <div role="status">{status}</div>
