@@ -204,6 +204,34 @@
   color: var(--accent-fg);
 }
 
+.surprise-button {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  /* Sits 8px below the add recipe link, which has a 16px bottom margin. */
+  margin: -8px 0 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+}
+
+.surprise-button:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+
+.surprise-button:disabled {
+  border-color: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
 .recipe-form h2 {
   font-family: Georgia, "Times New Roman", serif;
   margin-top: 0;

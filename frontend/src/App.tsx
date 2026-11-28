@@ -5,6 +5,7 @@ import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
+import { pickRandomRecipeId } from "./randomRecipe";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
@@ -72,6 +73,14 @@ function App() {
 
   const activeId = route.name === "recipe" ? route.id : null;
 
+  // Picks from the full list, not the search results, and never the open recipe.
+  const recipeIds = recipes?.map((r) => r.id) ?? [];
+  const canSurprise = recipeIds.some((id) => id !== activeId);
+  const openRandomRecipe = () => {
+    const id = pickRandomRecipeId(recipeIds, activeId);
+    if (id !== null) window.location.hash = hrefFor({ name: "recipe", id });
+  };
+
   let shown: RecipeSummary[] | null;
   let status: ReactNode = null;
   if (searchText === "") {
@@ -104,6 +113,16 @@ function App() {
         >
           + Add a recipe
         </a>
+        <button
+          type="button"
+          className="surprise-button"
+          onClick={openRandomRecipe}
+          disabled={!canSurprise}
+          aria-label="Open a random recipe"
+          title="Open a random recipe"
+        >
+          Surprise me
+        </button>
         <RecipeSearch value={query} onChange={changeQuery} />
         <div role="status">{status}</div>
         <nav aria-label={searchText === "" ? "Recipes" : "Search results"}>
