@@ -1,0 +1,76 @@
+.ingredient-checklist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.ingredient-checklist-header h2 {
+  margin: 0;
+}
+
+.ingredient-checklist-clear {
+  min-height: 36px;
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.ingredient-checklist-clear:hover {
+  border-color: var(--accent);
+}
+
+.ingredient-checklist-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ingredient-checklist-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.ingredient-checklist-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.ingredient-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 6px 4px;
+  box-sizing: border-box;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ingredient-checklist-box {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.ingredient-checklist-box:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ingredient-checklist-text {
+  overflow-wrap: anywhere;
+}
+
+.ingredient-checklist-item-checked .ingredient-checklist-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
