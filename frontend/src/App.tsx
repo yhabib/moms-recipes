@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddedByYou } from "./components/AddedByYou";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { AuthButton } from "./components/AuthButton";
+import { CookMode } from "./components/CookMode";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
 import { RecipePhoto } from "./components/RecipePhoto";
@@ -227,6 +228,21 @@ function RecipePage({ id }: { id: string }) {
 function RecipeView({ recipe }: { recipe: Recipe }) {
   const baseServings = Number(recipe.servings);
   const [servings, setServings] = useState(baseServings);
+  const [cooking, setCooking] = useState(false);
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+  const wasCookingRef = useRef(false);
+  const markdown =
+    baseServings > 0
+      ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
+      : recipe.markdown;
+
+  // When cook mode closes, give focus back to the button that opened it.
+  // This runs after CookMode has unmounted, so it has the last word on focus.
+  useEffect(() => {
+    if (wasCookingRef.current && !cooking) startButtonRef.current?.focus();
+    wasCookingRef.current = cooking;
+  }, [cooking]);
+
   return (
     <article className="recipe">
       <RecipePhoto id={recipe.id} title={recipe.title} variant="hero" />
@@ -238,11 +254,11 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
         difficulty={recipe.difficulty}
       />
       {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
-      <Markdown>
-        {baseServings > 0
-          ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
-          : recipe.markdown}
-      </Markdown>
+      <button ref={startButtonRef} type="button" className="button-primary" onClick={() => setCooking(true)}>
+        Start cooking
+      </button>
+      <Markdown>{markdown}</Markdown>
+      {cooking && <CookMode title={recipe.title} markdown={markdown} onExit={() => setCooking(false)} />}
     </article>
   );
 }
