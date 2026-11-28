@@ -20,7 +20,7 @@ module {
     description : Text;
     /// Number of servings the recipe is written for.
     servings : Nat;
-    /// The recipe's tags; may be empty.
+    /// Same as `Recipe.tags`: short lowercase labels; may be empty.
     tags : [Text];
   };
 
