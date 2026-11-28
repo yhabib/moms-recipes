@@ -438,7 +438,8 @@
   }
 }
 
-.add-recipe-link {
+.add-recipe-link,
+.shopping-list-link {
   display: block;
   margin-bottom: 16px;
   border: 1px solid var(--accent);
@@ -451,7 +452,9 @@
 }
 
 .add-recipe-link:hover,
-.add-recipe-link.active {
+.add-recipe-link.active,
+.shopping-list-link:hover,
+.shopping-list-link.active {
   background: var(--accent);
   color: var(--accent-fg);
 }
