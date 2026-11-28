@@ -288,3 +288,65 @@
   opacity: 0.6;
   cursor: progress;
 }
+
+.recipe-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.recipe-card:hover {
+  border-color: var(--accent);
+}
+
+.recipe-card:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.recipe-card-title {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.recipe-card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The card shows the focus ring, so the link does not need its own. */
+.recipe-card-title a:focus {
+  outline: none;
+}
+
+/* Stretches the title link over the whole card, so the card is clickable. */
+.recipe-card-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.recipe-card-description {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.recipe-card-servings {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.recipe-card .recipe-tags {
+  margin: 0;
+}
