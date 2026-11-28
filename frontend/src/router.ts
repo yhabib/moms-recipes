@@ -9,6 +9,7 @@ export type Route =
   | { name: "home" }
   | { name: "newRecipe" }
   | { name: "recipe"; id: string }
+  | { name: "editRecipe"; id: string }
   | { name: "shoppingList" }
   | { name: "notFound"; path: string };
 
@@ -31,6 +32,15 @@ export function parseRoute(hash: string): Route {
     }
   }
 
+  const editRecipe = /^\/recipes\/([^/]+)\/edit\/?$/.exec(path);
+  if (editRecipe) {
+    try {
+      return { name: "editRecipe", id: decodeURIComponent(editRecipe[1]) };
+    } catch {
+      // Malformed percent-encoding: fall through to "not found".
+    }
+  }
+
   return { name: "notFound", path };
 }
 
@@ -43,6 +53,8 @@ export function hrefFor(route: Route): string {
       return "#/recipes/new";
     case "recipe":
       return `#/recipes/${encodeURIComponent(route.id)}`;
+    case "editRecipe":
+      return `#/recipes/${encodeURIComponent(route.id)}/edit`;
     case "shoppingList":
       return "#/shopping-list";
     case "notFound":

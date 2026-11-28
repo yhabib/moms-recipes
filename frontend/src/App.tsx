@@ -8,6 +8,7 @@ import { AddToShoppingListButton } from "./components/AddToShoppingListButton";
 import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
+import { EditRecipePage } from "./components/EditRecipePage";
 import { RecipeActions } from "./components/RecipeActions";
 import { RecipeCards } from "./components/RecipeCards";
 import { RecipeFacts } from "./components/RecipeFacts";
@@ -89,7 +90,8 @@ function App() {
     // `recipes` is a dependency so that the results follow a reloaded list.
   }, [searchText, recipes]);
 
-  const activeId = route.name === "recipe" ? route.id : null;
+  // The recipe being edited stays highlighted in the sidebar too.
+  const activeId = route.name === "recipe" || route.name === "editRecipe" ? route.id : null;
   const tags = recipes === null ? [] : distinctTags(recipes);
 
   // Picks from the full list, not the search results, and never the open recipe.
@@ -195,6 +197,8 @@ function Page({
       return <AddRecipeForm />;
     case "recipe":
       return <RecipePage id={route.id} />;
+    case "editRecipe":
+      return <EditRecipePage id={route.id} />;
     case "shoppingList":
       return <ShoppingListPage />;
     case "notFound":

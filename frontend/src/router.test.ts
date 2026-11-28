@@ -26,6 +26,25 @@ describe("parseRoute", () => {
     });
   });
 
+  it("reads the edit page of a recipe, with or without a trailing slash", () => {
+    expect(parseRoute("#/recipes/apple-cake/edit")).toEqual({ name: "editRecipe", id: "apple-cake" });
+    expect(parseRoute("#/recipes/apple-cake/edit/")).toEqual({ name: "editRecipe", id: "apple-cake" });
+  });
+
+  it("decodes an encoded recipe id on the edit page", () => {
+    expect(parseRoute("#/recipes/mom%27s%20pie%2Fbest/edit")).toEqual({
+      name: "editRecipe",
+      id: "mom's pie/best",
+    });
+    expect(parseRoute("#/recipes/edit/edit")).toEqual({ name: "editRecipe", id: "edit" });
+  });
+
+  it("still reads the add-recipe page and a recipe next to the edit page", () => {
+    expect(parseRoute("#/recipes/new")).toEqual({ name: "newRecipe" });
+    expect(parseRoute("#/recipes/x")).toEqual({ name: "recipe", id: "x" });
+    expect(parseRoute("#/recipes/edit")).toEqual({ name: "recipe", id: "edit" });
+  });
+
   it("reads the shopping list, with or without a trailing slash", () => {
     expect(parseRoute("#/shopping-list")).toEqual({ name: "shoppingList" });
     expect(parseRoute("#/shopping-list/")).toEqual({ name: "shoppingList" });
@@ -40,6 +59,15 @@ describe("parseRoute", () => {
     expect(parseRoute("#/recipes/%E0%A4%A")).toEqual({
       name: "notFound",
       path: "/recipes/%E0%A4%A",
+    });
+    expect(parseRoute("#/recipes/%E0%A4%A/edit")).toEqual({
+      name: "notFound",
+      path: "/recipes/%E0%A4%A/edit",
+    });
+    expect(parseRoute("#/recipes//edit")).toEqual({ name: "notFound", path: "/recipes//edit" });
+    expect(parseRoute("#/recipes/apple-cake/edit/more")).toEqual({
+      name: "notFound",
+      path: "/recipes/apple-cake/edit/more",
     });
   });
 });
@@ -56,6 +84,13 @@ describe("hrefFor", () => {
     expect(hrefFor({ name: "recipe", id: "mom's pie/best" })).toBe("#/recipes/mom's%20pie%2Fbest");
   });
 
+  it("encodes a recipe id on the edit page", () => {
+    expect(hrefFor({ name: "editRecipe", id: "apple-cake" })).toBe("#/recipes/apple-cake/edit");
+    expect(hrefFor({ name: "editRecipe", id: "mom's pie/best" })).toBe(
+      "#/recipes/mom's%20pie%2Fbest/edit"
+    );
+  });
+
   it("keeps the path of a not-found route", () => {
     expect(hrefFor({ name: "notFound", path: "/nowhere" })).toBe("#/nowhere");
   });
@@ -65,6 +100,8 @@ describe("hrefFor", () => {
       { name: "home" },
       { name: "newRecipe" },
       { name: "recipe", id: "mom's pie/best" },
+      { name: "editRecipe", id: "mom's pie/best" },
+      { name: "editRecipe", id: "new" },
       { name: "shoppingList" },
       { name: "notFound", path: "/nowhere" },
     ] as const;
