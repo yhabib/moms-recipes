@@ -15,7 +15,11 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
     };
   };
 
-  func summary(r : Types.Recipe) : Types.RecipeSummary = { id = r.id; title = r.title };
+  func summary(r : Types.Recipe) : Types.RecipeSummary = {
+    id = r.id;
+    title = r.title;
+    tags = r.tags;
+  };
 
   public query func listRecipes() : async [Types.RecipeSummary] {
     Array.concat(

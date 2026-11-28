@@ -14,6 +14,8 @@ module {
   public type RecipeSummary = {
     id : Text;
     title : Text;
+    /// Same as `Recipe.tags`: short lowercase labels; may be empty.
+    tags : [Text];
   };
 
   /// Input for `addRecipe`. The backend validates it, builds the Markdown

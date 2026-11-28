@@ -6,6 +6,7 @@ type Result =
 type RecipeSummary = 
  record {
    id: text;
+   tags: vec text;
    title: text;
  };
 type Recipe = 
