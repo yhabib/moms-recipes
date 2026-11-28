@@ -78,4 +78,16 @@ mixin (
   public query func getRecipePhoto(id : Text) : async ?Types.Photo {
     Map.get(photos, Text.compare, id);
   };
+
+  /// True if the caller may edit the recipe: the caller is not anonymous and
+  /// is the stored `author` of this user-added recipe. Placeholder and seed
+  /// recipes, recipes added before authors were stored, and unknown ids
+  /// return false.
+  public shared query ({ caller }) func canEditRecipe(id : Text) : async Bool {
+    if (Principal.isAnonymous(caller)) return false;
+    switch (List.find<Types.Recipe>(added, func r = r.id == id)) {
+      case (?{ author = ?author }) author == caller;
+      case _ false;
+    };
+  };
 };
