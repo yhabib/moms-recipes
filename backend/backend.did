@@ -1,7 +1,12 @@
-type Result = 
+type Result_1 = 
  variant {
    err: text;
    ok: text;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok;
  };
 type RecipeSummary = 
  record {
@@ -29,10 +34,19 @@ type NewRecipe =
    tags: opt vec text;
  };
 service : {
+  /// Adds a recipe to the caller's favourites. Anonymous callers and unknown
+  /// recipe ids get `#err`; adding a recipe that is already a favourite is `#ok`.
+  addFavourite: (recipeId: text) -> (Result);
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
-  addRecipe: (input: NewRecipe) -> (Result);
+  addRecipe: (input: NewRecipe) -> (Result_1);
   getRecipe: (id: text) -> (opt Recipe) query;
+  /// The caller's favourite recipes, in `listRecipes` order. Anonymous callers
+  /// and callers without favourites get []; ids of missing recipes are skipped.
+  listFavourites: () -> (vec RecipeSummary) query;
   listRecipes: () -> (vec RecipeSummary) query;
+  /// Removes a recipe from the caller's favourites. Anonymous callers get
+  /// `#err`; removing an id that is not a favourite is `#ok`.
+  removeFavourite: (recipeId: text) -> (Result);
   /// Recipes whose title or ingredient lines contain `searchText` (trimmed,
   /// case-insensitive), in `listRecipes` order. Empty or over-long queries return [].
   searchRecipes: (searchText: text) -> (vec RecipeSummary) query;

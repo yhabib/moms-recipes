@@ -1,14 +1,19 @@
 import Array "mo:core/Array";
 import List "mo:core/List";
+import Principal "mo:core/Principal";
 import Result "mo:core/Result";
+import Favourites "../lib/Favourites";
 import RecipesLib "../lib/Recipes";
 import Search "../lib/Search";
 import Summary "../lib/Summary";
 import Types "../types";
 
 /// Public recipe API. main.mo injects the hard-coded `placeholders` and the
-/// persistent `added` list, which keeps user-added recipes in insertion order.
-mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
+/// persistent `added` list, which keeps user-added recipes in insertion order,
+/// and the persistent `favourites` store, keyed by the caller's principal.
+mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>, favourites : Favourites.Store) {
+  let signInError = "Sign in to save favourites.";
+
   func findRecipe(id : Text) : ?Types.Recipe {
     switch (Array.find<Types.Recipe>(placeholders, func r = r.id == id)) {
       case (?r) ?r;
@@ -56,5 +61,33 @@ mixin (placeholders : [Types.Recipe], added : List.List<Types.Recipe>) {
         #ok(recipe.id);
       };
     };
+  };
+
+  /// Adds a recipe to the caller's favourites. Anonymous callers and unknown
+  /// recipe ids get `#err`; adding a recipe that is already a favourite is `#ok`.
+  public shared ({ caller }) func addFavourite(recipeId : Text) : async Result.Result<(), Text> {
+    if (Principal.isAnonymous(caller)) return #err(signInError);
+    if (findRecipe(recipeId) == null) return #err("Recipe not found.");
+    Favourites.add(favourites, caller, recipeId);
+    #ok;
+  };
+
+  /// Removes a recipe from the caller's favourites. Anonymous callers get
+  /// `#err`; removing an id that is not a favourite is `#ok`.
+  public shared ({ caller }) func removeFavourite(recipeId : Text) : async Result.Result<(), Text> {
+    if (Principal.isAnonymous(caller)) return #err(signInError);
+    Favourites.remove(favourites, caller, recipeId);
+    #ok;
+  };
+
+  /// The caller's favourite recipes, in `listRecipes` order. Anonymous callers
+  /// and callers without favourites get []; ids of missing recipes are skipped.
+  public shared query ({ caller }) func listFavourites() : async [Types.RecipeSummary] {
+    if (Principal.isAnonymous(caller) or not Favourites.hasAny(favourites, caller)) return [];
+    let isFavourite = func(r : Types.Recipe) : Bool = Favourites.has(favourites, caller, r.id);
+    Array.concat(
+      Array.map<Types.Recipe, Types.RecipeSummary>(Array.filter<Types.Recipe>(placeholders, isFavourite), summary),
+      List.toArray(List.map<Types.Recipe, Types.RecipeSummary>(List.filter<Types.Recipe>(added, isFavourite), summary)),
+    );
   };
 };

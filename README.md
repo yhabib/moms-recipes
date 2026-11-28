@@ -15,6 +15,9 @@ getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; ser
 searchRecipes : (searchText : text) -> (vec RecipeSummary) query;
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
               // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text }
+addFavourite    : (recipeId : text) -> (variant { ok; err : text });
+removeFavourite : (recipeId : text) -> (variant { ok; err : text });
+listFavourites  : () -> (vec RecipeSummary) query;
 ```
 
 `addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
@@ -22,6 +25,8 @@ addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
 `tags` are short labels such as `"soup"` or `"vegetarian"` and are optional: the field can be left out or be an empty list (it is `opt` so that callers built before tags existed keep working). Each tag is trimmed and lowercased; blank tags and duplicates are dropped, keeping the first occurrence and its order (`opt vec { " Soup "; "soup"; "Quick" }` is stored as `vec { "soup"; "quick" }`). After cleaning there can be at most 10 tags of up to 30 characters each, otherwise `addRecipe` returns `#err`. Tags are returned by `getRecipe` but are not part of the Markdown. Recipes added before tags existed have `tags = vec {}`.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
+
+`addFavourite`, `removeFavourite` and `listFavourites` keep a list of favourite recipes for each caller, identified by `msg.caller` (the principal the frontend gets from Internet Identity). The list is stored in the canister and survives upgrades. An anonymous caller gets `#err("Sign in to save favourites.")` from `addFavourite` and `removeFavourite`, and `vec {}` from `listFavourites`. `addFavourite` returns `#err("Recipe not found.")` for an id that is not a placeholder, seed or added recipe; adding a recipe that is already a favourite, or removing one that is not, returns `#ok` and changes nothing. `listFavourites` returns the caller's favourites as `RecipeSummary` values in the same order as `listRecipes`, skipping ids of recipes that no longer exist.
 
 Code layout follows the multi-file Motoko convention: `types.mo` (types), `lib/` (domain logic and data), `mixins/` (public API), `main.mo` (composition only).
 
@@ -47,6 +52,14 @@ icp canister call backend listRecipes '()'
 icp canister call backend getRecipe '("apple-cake")'
 icp canister call backend searchRecipes '("lentil")'
 icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" } })'
+```
+
+Favourites need a non-anonymous identity (`icp identity new alice` once, then pass `--identity alice`):
+
+```bash
+icp canister call backend addFavourite '("apple-cake")' --identity alice
+icp canister call backend listFavourites '()' --identity alice
+icp canister call backend removeFavourite '("apple-cake")' --identity alice
 ```
 
 ### Frontend dev server
