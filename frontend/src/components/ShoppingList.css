@@ -1,0 +1,134 @@
+.shopping-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.shopping-list-header h2 {
+  margin: 0;
+}
+
+.shopping-list-clear {
+  min-height: 36px;
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--fg);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.shopping-list-clear:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.shopping-list-clear:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shopping-list-clear:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.shopping-list-empty {
+  color: var(--muted);
+}
+
+.shopping-list-recipe {
+  margin-top: 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.shopping-list-recipe-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+}
+
+.shopping-list-recipe-title {
+  margin: 0;
+  font-size: 1.125rem;
+  overflow-wrap: anywhere;
+}
+
+.shopping-list-recipe-title a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.shopping-list-recipe-title a:hover {
+  text-decoration: underline;
+}
+
+.shopping-list-recipe-title a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shopping-list-servings {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: normal;
+}
+
+.shopping-list-count {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.shopping-list-items {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.shopping-list-items li + li {
+  border-top: 1px solid var(--border);
+}
+
+.shopping-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 4px;
+  box-sizing: border-box;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shopping-list-box {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.shopping-list-box:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shopping-list-text {
+  overflow-wrap: anywhere;
+}
+
+.shopping-list-item-checked .shopping-list-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
