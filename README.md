@@ -11,7 +11,7 @@ See [`backend/backend.did`](./backend/backend.did):
 
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title; description; servings; tags : vec text; hasPhoto : bool }
-getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty }
+getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty; author : opt principal }
 getRecipePhoto : (id : text) -> (opt Photo) query; // Photo = { contentType : text; data : blob }
 searchRecipes : (searchText : text) -> (vec RecipeSummary) query;
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
@@ -29,9 +29,9 @@ canEditRecipe : (id : text) -> (bool) query;
 
 `photo` is optional too: one image per recipe, which can be left out or be `null` (callers built before photos existed keep working). `contentType` must be `"image/jpeg"`, `"image/png"` or `"image/webp"`, and `data` (the file bytes) must not be empty and can be at most 1 MiB (1,048,576 bytes); otherwise `addRecipe` returns `#err` and stores nothing. The backend does not resize or inspect the image; the frontend is expected to scale photos down (to at most 1200 px) before upload. Photos are stored apart from the recipes: `listRecipes` and `searchRecipes` only report `hasPhoto`, and `getRecipePhoto` returns the photo itself, or `null` when the recipe has none or does not exist. Placeholder and seed recipes have no photo.
 
-When `addRecipe` is called by a signed-in (non-anonymous) caller, the backend remembers that caller's principal as the recipe's author. Anonymous callers can still add recipes, but those recipes have no author.
+`addRecipe` requires a signed-in caller: for the anonymous principal it returns `#err("Sign in to add a recipe")` before checking the input, and stores nothing. Otherwise the caller's principal is stored as the recipe's `author` and returned by `getRecipe`. Placeholder and seed recipes, and recipes added before authors were stored, have `author = null`.
 
-`canEditRecipe` tells the caller whether they may edit a recipe (the frontend uses it to decide whether to show Edit and Delete). It returns `true` only if the caller is not anonymous and is the recorded author of that user-added recipe. Placeholder and seed recipes, recipes added before authors were recorded, recipes added anonymously and unknown ids return `false`, so an anonymous call always returns `false`.
+`canEditRecipe` tells the caller whether they may edit a recipe (the frontend uses it to decide whether to show Edit and Delete). It returns `true` only if the caller is not anonymous and is the stored `author` of that user-added recipe. Placeholder and seed recipes, recipes added before authors were stored, and unknown ids return `false`, so an anonymous call always returns `false`.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
 
@@ -63,7 +63,15 @@ icp canister call backend addRecipe '(record { name = "Toast"; description = "";
 icp canister call backend getRecipePhoto '("toast")'
 ```
 
+`addRecipe` needs a non-anonymous identity, and icp-cli calls with your current one. If `icp identity default` prints `anonymous`, create and select one first (`icp identity new dev && icp identity default dev`), or add `--identity <name>` to the call; with the anonymous identity it returns `#err("Sign in to add a recipe")`.
+
 `tags`, `prepMinutes`, `cookMinutes`, `difficulty` and `photo` can all be left out; the first `addRecipe` call above stores a recipe without a photo, and the second one sets `photo` but leaves the other optional fields out.
+
+### Sign in
+
+The app signs users in with [Internet Identity](https://internetcomputer.org/internet-identity). Anyone can browse and search recipes, but only signed-in users can add one: signed out, the "Add a recipe" page shows a "Sign in" button instead of the form, and the backend rejects `addRecipe` from the anonymous principal.
+
+On mainnet, sign-in uses Internet Identity at `https://id.ai`. On the local network nothing goes online: `icp.yaml` sets `ii: true`, so `icp network start` also runs an Internet Identity canister, served at `http://id.ai.localhost:8000`. The frontend picks it automatically when it is opened on `localhost` or a `*.localhost` address (`frontend/src/auth.ts`); under `npm run dev`, `frontend/vite.config.ts` passes the local II URL in, since the app then runs on Vite's port. Create a new identity in the local II popup the first time; it only exists on your local network.
 
 ### Frontend dev server
 

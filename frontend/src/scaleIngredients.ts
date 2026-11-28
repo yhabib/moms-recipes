@@ -192,3 +192,45 @@ export function withServings(markdown: string, servings: number): string {
   lines[target] = lines[target].replace(/\r$/, "").replace(SERVINGS_LINE, `$1${servings}$2`) + cr;
   return lines.join("\n");
 }
+
+/**
+ * Returns the text of every list item (`-` or `*`) under an "Ingredients"
+ * heading, with the same rules as `scaleRecipeMarkdown`: any heading level,
+ * case-insensitive, optional trailing colon; the section ends at the next
+ * heading; lines in fenced code blocks are skipped. The list marker and
+ * surrounding whitespace are removed and empty items are left out.
+ */
+export function ingredientLines(markdown: string): string[] {
+  const result: string[] = [];
+  let inIngredients = false;
+  let fence: string | null = null;
+
+  for (const line of markdown.split("\n")) {
+    const fenceMatch = FENCE.exec(line);
+    if (fence !== null) {
+      if (fenceMatch && fenceMatch[1][0] === fence[0] &&
+        fenceMatch[1].length >= fence.length) {
+        fence = null;
+      }
+      continue;
+    }
+    if (fenceMatch) {
+      fence = fenceMatch[1];
+      continue;
+    }
+
+    const heading = HEADING.exec(line);
+    if (heading) {
+      inIngredients = isIngredientsHeading(heading[1]);
+      continue;
+    }
+
+    if (!inIngredients) continue;
+
+    const item = LIST_ITEM.exec(line.endsWith("\r") ? line.slice(0, -1) : line);
+    if (!item) continue;
+    const text = item[2].trim();
+    if (text !== "") result.push(text);
+  }
+  return result;
+}

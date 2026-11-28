@@ -14,6 +14,7 @@ type RecipeSummary =
  };
 type Recipe = 
  record {
+   author: opt principal;
    cookMinutes: opt nat;
    difficulty: opt Difficulty;
    id: text;
@@ -49,12 +50,13 @@ type Difficulty =
  };
 service : {
   /// Adds a recipe and returns its id, or a readable error if the input is invalid.
-  /// A non-anonymous caller is remembered as the recipe's author.
+  /// The caller must be signed in (not the anonymous principal) and is stored as
+  /// the recipe's `author`.
   addRecipe: (input: NewRecipe) -> (Result);
   /// True if the caller may edit the recipe: the caller is not anonymous and
-  /// added this recipe through `addRecipe`. Placeholder and seed recipes,
-  /// recipes added before authors were recorded or added anonymously, and
-  /// unknown ids return false.
+  /// is the stored `author` of this user-added recipe. Placeholder and seed
+  /// recipes, recipes added before authors were stored, and unknown ids
+  /// return false.
   canEditRecipe: (id: text) -> (bool) query;
   getRecipe: (id: text) -> (opt Recipe) query;
   /// The photo of the recipe with this id, or null if it has none or does not exist.
