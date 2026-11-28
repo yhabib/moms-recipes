@@ -1,6 +1,8 @@
+import Array "mo:core/Array";
 import List "mo:core/List";
 import LegacyRecipes "lib/LegacyRecipes";
 import PlaceholderRecipes "lib/PlaceholderRecipes";
+import SeedRecipes "lib/SeedRecipes";
 import RecipesMixin "mixins/Recipes";
 
 actor {
@@ -31,5 +33,7 @@ actor {
   // time, cook time or difficulty.
   let addedRecipesWithDetails = LegacyRecipes.withDetails(addedRecipesWithTags);
 
-  include RecipesMixin(PlaceholderRecipes.all, addedRecipesWithDetails);
+  // The placeholder and seed recipes are hard-coded in the code, not stored in
+  // actor state; they are served first, followed by the added recipes.
+  include RecipesMixin(Array.concat(PlaceholderRecipes.all, SeedRecipes.all), addedRecipesWithDetails);
 };
