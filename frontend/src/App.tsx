@@ -6,6 +6,7 @@ import { AddRecipeForm } from "./components/AddRecipeForm";
 import { AuthButton } from "./components/AuthButton";
 import { RecipeCard } from "./components/RecipeCard";
 import { RecipeFacts } from "./components/RecipeFacts";
+import { RecipePhoto } from "./components/RecipePhoto";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
 import { TagFilter } from "./components/TagFilter";
@@ -241,6 +242,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
   const [servings, setServings] = useState(baseServings);
   return (
     <article className="recipe">
+      <RecipePhoto id={recipe.id} title={recipe.title} variant="hero" />
       <RecipeTags tags={recipe.tags} />
       <RecipeFacts
         prepMinutes={recipe.prepMinutes}
