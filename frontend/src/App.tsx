@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
+import { AddedByYou } from "./components/AddedByYou";
 import { AddRecipeForm } from "./components/AddRecipeForm";
 import { AuthButton } from "./components/AuthButton";
 import { RecipeCards } from "./components/RecipeCards";
@@ -229,6 +230,7 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
   return (
     <article className="recipe">
       <RecipePhoto id={recipe.id} title={recipe.title} variant="hero" />
+      <AddedByYou author={recipe.author ?? null} />
       <RecipeTags tags={recipe.tags} />
       <RecipeFacts
         prepMinutes={recipe.prepMinutes}

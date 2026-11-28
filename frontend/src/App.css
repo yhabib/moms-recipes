@@ -176,6 +176,15 @@
   line-height: 1.5;
 }
 
+/* "Added by you" above the tags, on the signed-in user's own recipes. */
+.added-by-you {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 /* "Prep 10 min · Cook 40 min · Total 50 min · Easy" below the tags. */
 .recipe-facts {
   /* Every item starts with a dot. The row is shifted left by one dot's width
