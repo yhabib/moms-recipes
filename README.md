@@ -11,16 +11,20 @@ See [`backend/backend.did`](./backend/backend.did):
 
 ```candid
 listRecipes : () -> (vec RecipeSummary) query;     // { id; title; description; servings; tags : vec text; hasPhoto : bool }
-getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text }
+getRecipe   : (id : text) -> (opt Recipe) query;   // { id; title; markdown; servings; tags : vec text; prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty }
 getRecipePhoto : (id : text) -> (opt Photo) query; // Photo = { contentType : text; data : blob }
 searchRecipes : (searchText : text) -> (vec RecipeSummary) query;
 addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
-              // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text; photo : opt Photo }
+              // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text;
+              //             prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty; photo : opt Photo }
+              // Difficulty = variant { easy; medium; hard }
 ```
 
 `addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
 
 `tags` are short labels such as `"soup"` or `"vegetarian"` and are optional: the field can be left out or be an empty list (it is `opt` so that callers built before tags existed keep working). Each tag is trimmed and lowercased; blank tags and duplicates are dropped, keeping the first occurrence and its order (`opt vec { " Soup "; "soup"; "Quick" }` is stored as `vec { "soup"; "quick" }`). After cleaning there can be at most 10 tags of up to 30 characters each, otherwise `addRecipe` returns `#err`. Tags are returned by `getRecipe` but are not part of the Markdown. Recipes added before tags existed have `tags = vec {}`.
+
+`prepMinutes`, `cookMinutes` and `difficulty` are optional too, for the same reason: each can be left out or be `null`, which means "not given". `prepMinutes` and `cookMinutes` are whole minutes from 0 to 1440 (24 hours); 0 is allowed, for example for a salad with no cooking, and a larger value makes `addRecipe` return `#err`. `difficulty` is one of `easy`, `medium` or `hard`. All three are returned by `getRecipe` but are not part of the Markdown. Recipes added before these fields existed have `null` for all three.
 
 `photo` is optional too: one image per recipe, which can be left out or be `null` (callers built before photos existed keep working). `contentType` must be `"image/jpeg"`, `"image/png"` or `"image/webp"`, and `data` (the file bytes) must not be empty and can be at most 1 MiB (1,048,576 bytes); otherwise `addRecipe` returns `#err` and stores nothing. The backend does not resize or inspect the image; the frontend is expected to scale photos down (to at most 1200 px) before upload. Photos are stored apart from the recipes: `listRecipes` and `searchRecipes` only report `hasPhoto`, and `getRecipePhoto` returns the photo itself, or `null` when the recipe has none or does not exist. Placeholder and seed recipes have no photo.
 
@@ -49,12 +53,12 @@ Call the backend directly:
 icp canister call backend listRecipes '()'
 icp canister call backend getRecipe '("apple-cake")'
 icp canister call backend searchRecipes '("lentil")'
-icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" } })'
+icp canister call backend addRecipe '(record { name = "Pancakes"; description = "Quick breakfast"; servings = 4; ingredients = vec { "2 eggs"; "1 cup flour" }; steps = vec { "Mix"; "Fry" }; tags = opt vec { "breakfast" }; prepMinutes = opt 5; cookMinutes = opt 10; difficulty = opt variant { easy } })'
 icp canister call backend addRecipe '(record { name = "Toast"; description = ""; servings = 1; ingredients = vec { "1 slice bread" }; steps = vec { "Toast" }; photo = opt record { contentType = "image/jpeg"; data = blob "\ff\d8\ff" } })'
 icp canister call backend getRecipePhoto '("toast")'
 ```
 
-`tags` and `photo` can be left out, so the first `addRecipe` call above stores a recipe without a photo.
+`tags`, `prepMinutes`, `cookMinutes`, `difficulty` and `photo` can all be left out; the first `addRecipe` call above stores a recipe without a photo, and the second one sets `photo` but leaves the other optional fields out.
 
 ### Frontend dev server
 
