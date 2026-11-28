@@ -3,6 +3,7 @@ import Markdown from "react-markdown";
 import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { AppNav } from "./components/AppNav";
 import { RecipeSearch } from "./components/RecipeSearch";
 import { RecipeTags } from "./components/RecipeTags";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
@@ -93,10 +94,7 @@ function App() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <h1 className="app-title">
-          <a href={hrefFor({ name: "home" })}>Mom's Recipes</a>
-        </h1>
+      <AppNav route={route}>
         <a
           className={route.name === "newRecipe" ? "add-recipe-link active" : "add-recipe-link"}
           href={hrefFor({ name: "newRecipe" })}
@@ -121,7 +119,7 @@ function App() {
             ))}
           </ul>
         </nav>
-      </aside>
+      </AppNav>
       <main className="content">
         {error && <p className="error">Could not reach the backend: {error}</p>}
         <Page route={route} />
