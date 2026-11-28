@@ -4,6 +4,7 @@ import { backend } from "./backend";
 import type { Recipe, RecipeSummary } from "./backend/api/backend";
 import { AddedByYou } from "./components/AddedByYou";
 import { AddRecipeForm } from "./components/AddRecipeForm";
+import { AppNav } from "./components/AppNav";
 import { AuthButton } from "./components/AuthButton";
 import { CookMode } from "./components/CookMode";
 import { RecipeCards } from "./components/RecipeCards";
@@ -112,10 +113,7 @@ function App() {
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <h1 className="app-title">
-          <a href={hrefFor({ name: "home" })}>Mom's Recipes</a>
-        </h1>
+      <AppNav route={route}>
         <AuthButton />
         <a
           className={route.name === "newRecipe" ? "add-recipe-link active" : "add-recipe-link"}
@@ -142,7 +140,7 @@ function App() {
             ))}
           </ul>
         </nav>
-      </aside>
+      </AppNav>
       <main className={route.name === "home" ? "content content-wide" : "content"}>
         {error && <p className="error">Could not reach the backend: {error}</p>}
         <Page route={route} recipes={recipes} failed={error !== null} />
