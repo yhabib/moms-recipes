@@ -18,6 +18,7 @@ addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
               // NewRecipe = { name; description; servings : nat; ingredients : vec text; steps : vec text; tags : opt vec text;
               //             prepMinutes : opt nat; cookMinutes : opt nat; difficulty : opt Difficulty; photo : opt Photo }
               // Difficulty = variant { easy; medium; hard }
+canEditRecipe : (id : text) -> (bool) query;
 ```
 
 `addRecipe` trims the input and checks it: `name` is required (up to 100 characters), `description` is optional (up to 500), `servings` must be at least 1, and `ingredients` and `steps` each need at least one non-blank line (up to 100 lines of up to 300 characters; blank lines are dropped). On success it returns the new recipe's id, a slug of the name (`"Mom's Pancakes"` becomes `mom-s-pancakes`, `-2`, `-3`, ... is added if the id is taken). Otherwise it returns `#err` with a short message. The stored `markdown` is built from the fields in the same shape as the placeholder recipes.
@@ -29,6 +30,8 @@ addRecipe   : (NewRecipe) -> (variant { ok : text; err : text });
 `photo` is optional too: one image per recipe, which can be left out or be `null` (callers built before photos existed keep working). `contentType` must be `"image/jpeg"`, `"image/png"` or `"image/webp"`, and `data` (the file bytes) must not be empty and can be at most 1 MiB (1,048,576 bytes); otherwise `addRecipe` returns `#err` and stores nothing. The backend does not resize or inspect the image; the frontend is expected to scale photos down (to at most 1200 px) before upload. Photos are stored apart from the recipes: `listRecipes` and `searchRecipes` only report `hasPhoto`, and `getRecipePhoto` returns the photo itself, or `null` when the recipe has none or does not exist. Placeholder and seed recipes have no photo.
 
 `addRecipe` requires a signed-in caller: for the anonymous principal it returns `#err("Sign in to add a recipe")` before checking the input, and stores nothing. Otherwise the caller's principal is stored as the recipe's `author` and returned by `getRecipe`. Placeholder and seed recipes, and recipes added before authors were stored, have `author = null`.
+
+`canEditRecipe` tells the caller whether they may edit a recipe (the frontend uses it to decide whether to show Edit and Delete). It returns `true` only if the caller is not anonymous and is the stored `author` of that user-added recipe. Placeholder and seed recipes, recipes added before authors were stored, and unknown ids return `false`, so an anonymous call always returns `false`.
 
 `searchRecipes` returns the recipes whose title or ingredient lines (the `- ` bullets under `## Ingredients`) contain the search text, ignoring case and surrounding whitespace; steps and description are not searched. Results come in the same order as `listRecipes`. A blank search text, or one longer than 100 characters, returns an empty list.
 

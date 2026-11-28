@@ -53,6 +53,11 @@ service : {
   /// The caller must be signed in (not the anonymous principal) and is stored as
   /// the recipe's `author`.
   addRecipe: (input: NewRecipe) -> (Result);
+  /// True if the caller may edit the recipe: the caller is not anonymous and
+  /// is the stored `author` of this user-added recipe. Placeholder and seed
+  /// recipes, recipes added before authors were stored, and unknown ids
+  /// return false.
+  canEditRecipe: (id: text) -> (bool) query;
   getRecipe: (id: text) -> (opt Recipe) query;
   /// The photo of the recipe with this id, or null if it has none or does not exist.
   getRecipePhoto: (id: text) -> (opt Photo) query;
