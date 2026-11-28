@@ -16,6 +16,7 @@ import { RecipeTags } from "./components/RecipeTags";
 import { ShoppingListPage } from "./components/ShoppingList";
 import { TagFilter } from "./components/TagFilter";
 import { pickRandomRecipeId } from "./randomRecipe";
+import { splitTitle } from "./recipeMarkdown";
 import { hrefFor, onRefreshRecipes, useRoute, type Route } from "./router";
 import ServingScaler from "./ServingScaler";
 import { scaleRecipeMarkdown, withServings } from "./scaleIngredients";
@@ -263,6 +264,8 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
     baseServings > 0
       ? withServings(scaleRecipeMarkdown(recipe.markdown, servings / baseServings), servings)
       : recipe.markdown;
+  // The header shows the title, so the Markdown body leaves out its `# Title` line.
+  const { body } = splitTitle(markdown);
 
   // When cook mode closes, give focus back to the button that opened it.
   // This runs after CookMode has unmounted, so it has the last word on focus.
@@ -273,20 +276,33 @@ function RecipeView({ recipe }: { recipe: Recipe }) {
 
   return (
     <article className="recipe">
+      <header className="recipe-header">
+        <h1 className="recipe-title">{recipe.title}</h1>
+        <AddedByYou author={recipe.author ?? null} />
+        {(recipe.tags.length > 0 || baseServings > 0) && (
+          <div className="recipe-meta">
+            <RecipeTags tags={recipe.tags} />
+            {baseServings > 0 && (
+              <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />
+            )}
+          </div>
+        )}
+        <RecipeFacts
+          prepMinutes={recipe.prepMinutes}
+          cookMinutes={recipe.cookMinutes}
+          difficulty={recipe.difficulty}
+        />
+      </header>
       <RecipePhoto id={recipe.id} title={recipe.title} variant="hero" />
-      <AddedByYou author={recipe.author ?? null} />
-      <RecipeTags tags={recipe.tags} />
-      <RecipeFacts
-        prepMinutes={recipe.prepMinutes}
-        cookMinutes={recipe.cookMinutes}
-        difficulty={recipe.difficulty}
-      />
-      {baseServings > 0 && <ServingScaler servings={servings} onChange={setServings} baseServings={baseServings} />}
-      <AddToShoppingListButton recipe={recipe} servings={servings} />
-      <button ref={startButtonRef} type="button" className="button-primary" onClick={() => setCooking(true)}>
-        Start cooking
-      </button>
-      <Markdown>{markdown}</Markdown>
+      <div className="recipe-actions">
+        <AddToShoppingListButton recipe={recipe} servings={servings} />
+        <button ref={startButtonRef} type="button" className="button-primary" onClick={() => setCooking(true)}>
+          Start cooking
+        </button>
+      </div>
+      <div className="recipe-body">
+        <Markdown>{body}</Markdown>
+      </div>
       {cooking && <CookMode title={recipe.title} markdown={markdown} onExit={() => setCooking(false)} />}
     </article>
   );
